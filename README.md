@@ -26,6 +26,11 @@
 
 ## Modelle
 
+> [!CAUTION]
+> Wenn von einem Ollama Notebook zu einem lokalen gewechselt wird. Vorher die Ollama-Modelle aus dem RAM laden. Sonst kann es zu abstürzen führen!<br>
+> ``ollama stop llama3.2:latest`` <br>
+> ``ollama stop mxbai-embed-large:latest``
+
 ### Ollama
 
 Falls du Ollama für die Modelle benutzt musst du sie vorher einmal herunterladen. Führe dafür folgende Befehle aus:
