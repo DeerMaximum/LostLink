@@ -6,9 +6,19 @@ from watchfiles import watch, Change
 
 
 class DirWatcher:
+    MAX_FILE_SIZE = 1024 * 1024 * 50  # 50 MB
 
     def __init__(self, local_file_manager: LocalFileManager):
         self._file_manager = local_file_manager
+
+    def _file_is_in_size_limit(self, path: str) -> bool:
+        return os.path.getsize(path) <= self.MAX_FILE_SIZE
+
+    @staticmethod
+    def _file_has_extension(path: str, extensions: list[str]) -> bool:
+        if len(extensions) == 0:
+            return True
+        return os.path.splitext(path)[1] in extensions
 
     def _handle_add(self, event: tuple[Change, str]):
         path = event[1]
@@ -46,12 +56,14 @@ class DirWatcher:
             local_file.deleted = True
             local_file.edited = False
 
-    def watch(self, paths: list[str]):
+    def watch(self, paths: list[str], allowed_extensions=[]):
         for event in watch(*paths, raise_interrupt=False, ignore_permission_denied=True):
             for change in event:
                 path = change[1]
 
-                if os.path.isdir(path):
+                if (os.path.isdir(path) or
+                        not self._file_is_in_size_limit(path) or
+                        not self._file_has_extension(path, allowed_extensions)):
                     continue
 
                 if change[0] == 1:
