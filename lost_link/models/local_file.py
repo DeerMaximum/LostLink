@@ -16,6 +16,7 @@ class LocalFile(Base):
     last_change_date: Mapped[float] = mapped_column(Float())
     last_seen: Mapped[datetime] = mapped_column(DateTime())
     embeddings_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    edited: Mapped[bool] = mapped_column(Boolean(), default=False)
     deleted: Mapped[bool] = mapped_column(Boolean(), default=False)
 
 class LocalFileManager:

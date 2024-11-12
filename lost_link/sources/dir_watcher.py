@@ -17,6 +17,7 @@ class DirWatcher:
 
         if local_file:
             local_file.deleted = False
+            local_file.edited = True
             local_file.modified = change_time
             return
 
@@ -35,6 +36,7 @@ class DirWatcher:
             self._handle_add(event)
         else:
             local_file.deleted = False
+            local_file.edited = True
             local_file.last_change_date = change_time
 
     def _handle_deleted(self, event: tuple[Change, str]):
@@ -42,6 +44,7 @@ class DirWatcher:
         local_file = self._file_manager.get_file_by_path(path)
         if local_file:
             local_file.deleted = True
+            local_file.edited = False
 
     def watch(self, paths: list[str]):
         for event in watch(*paths, raise_interrupt=False, ignore_permission_denied=True):

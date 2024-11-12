@@ -66,9 +66,11 @@ class DirScanner:
 
                 if change_time != db_file.last_change_date:
                     db_file.last_change_date = change_time
+                    db_file.edited = True
 
         #Deleted files
         for delete_file in self._file_manager.get_all_files_seen_before(scan_date):
             delete_file.deleted = True
+            delete_file.edited = False
 
         self._file_manager.save_updates()
