@@ -1,17 +1,22 @@
 from db import DB
+import args
 from lost_link.models.local_file import LocalFileManager
-from sources.dir_scanner import DirScanner
+from lost_link.sources.dir_watcher import DirWatcher
 
 def main():
-    db = DB(r"test.db", debug=True)
+    parser = args.init_argparser()
+    arguments = parser.parse_args()
+    run_debug = arguments.debug
 
-    file_manager = LocalFileManager(db)
-    scanner = DirScanner(file_manager)
+    db = DB(r"test.db", debug=run_debug)
+    local_file_manager = LocalFileManager(db)
 
-    print(scanner.get_changed_files(r"D:\tmp\Neuer Ordner"))
+    if arguments.background:
+        dir_watcher = DirWatcher(local_file_manager)
+        dir_watcher.watch([r"D:\tmp\Neuer Ordner"])
+        return
 
-
-    #print("Started File History AI:")
+    print("Started File History AI:")
     #print("--- authenticate for graph api")
     #print("--- find and download files via api ---")
     #print("--- load files ---")

@@ -8,3 +8,5 @@ pypdf==5.1.0
 watchfiles==0.24.0
 msal
 requests
+watchfiles
+argparse

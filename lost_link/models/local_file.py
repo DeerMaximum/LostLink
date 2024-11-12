@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, Sequence
 
-from sqlalchemy import String, DateTime, Float
+from sqlalchemy import String, DateTime, Float, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import select
 
@@ -16,6 +16,7 @@ class LocalFile(Base):
     last_change_date: Mapped[float] = mapped_column(Float())
     last_seen: Mapped[datetime] = mapped_column(DateTime())
     embeddings_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    deleted: Mapped[bool] = mapped_column(Boolean(), default=False)
 
 class LocalFileManager:
 

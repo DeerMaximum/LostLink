@@ -3,7 +3,6 @@ from datetime import datetime
 from stat import FILE_ATTRIBUTE_HIDDEN
 
 from lost_link.models.local_file import LocalFile, LocalFileManager
-from .scan_result import ScanResult, ResultType
 
 class DirScanner:
     MAX_FILE_SIZE = 1024 * 1024 * 50 # 50 MB
@@ -44,11 +43,7 @@ class DirScanner:
 
         return files
 
-    def get_changed_files(self, path: str, allowed_extensions=[]) -> list[ScanResult]:
-        added_files: list[ScanResult] = []
-        edited_files: list[ScanResult] = []
-        deleted_files: list[ScanResult] = []
-
+    def fetch_changed_files(self, path: str, allowed_extensions=[]):
         scan_date = datetime.now()
 
         for file in self._scan(path, allowed_extensions):
@@ -58,7 +53,6 @@ class DirScanner:
 
             #New files
             if db_file is None:
-                added_files.append(ScanResult(ResultType.ADDED, file))
                 self._file_manager.add_file(LocalFile(
                     path=file,
                     last_change_date=change_time,
@@ -67,18 +61,14 @@ class DirScanner:
                 ))
 
             #Edited
-            if db_file:
+            if db_file and not db_file.deleted:
                 db_file.last_seen = scan_date
 
                 if change_time != db_file.last_change_date:
-                    edited_files.append(ScanResult(ResultType.CHANGED, file))
                     db_file.last_change_date = change_time
 
         #Deleted files
         for delete_file in self._file_manager.get_all_files_seen_before(scan_date):
-            deleted_files.append(ScanResult(ResultType.DELETED, delete_file.path))
-            self._file_manager.remove_file(delete_file)
+            delete_file.deleted = True
 
         self._file_manager.save_updates()
-
-        return added_files + edited_files + deleted_files
