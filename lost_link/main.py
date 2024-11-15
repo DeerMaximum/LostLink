@@ -1,5 +1,6 @@
 from db import DB
 import args
+from lost_link.ai.models import ModelManager
 from lost_link.models.local_file import LocalFileManager
 from lost_link.sources.dir_watcher import DirWatcher
 
@@ -16,7 +17,11 @@ def main():
         dir_watcher.watch([r"D:\tmp\Neuer Ordner"])
         return
 
+    model_manager = ModelManager("../workdir/models")
+
     print("Started File History AI:")
+    print("Prepare ai models")
+    model_manager.init_models()
     #print("--- authenticate for graph api")
     #print("--- find and download files via api ---")
     #print("--- load files ---")
