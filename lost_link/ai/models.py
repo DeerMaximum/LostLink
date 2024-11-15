@@ -1,5 +1,6 @@
 import os.path
 import requests
+from tqdm import tqdm
 
 class ModelManager:
     MODELS: dict[str, str] = {
@@ -14,9 +15,16 @@ class ModelManager:
     def _download_file(url: str, path:str):
         response = requests.get(url, stream=True)
         response.raise_for_status()
-        with open(path, 'wb') as file:
-            for chunk in response.iter_content(chunk_size=4096):
-                file.write(chunk)
+        total_size = int(response.headers.get("content-length", 0))
+        block_size = 4096
+        with tqdm(total=total_size, unit="B", unit_scale=True) as progress_bar:
+            with open(path, 'wb') as file:
+                for chunk in response.iter_content(chunk_size=block_size):
+                    progress_bar.update(len(chunk))
+                    file.write(chunk)
+
+                if total_size != 0 and progress_bar.n != total_size:
+                    raise RuntimeError("Could not download file")
 
     def init_models(self):
         for filename, dl_link in self.MODELS.items():

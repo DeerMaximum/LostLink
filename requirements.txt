@@ -10,3 +10,4 @@ msal
 requests
 watchfiles
 argparse
+tqdm
