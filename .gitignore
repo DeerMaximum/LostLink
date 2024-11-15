@@ -5,6 +5,8 @@ test-data/*.pdf
 .idea
 test.db
 workdir
+*.pdf
+*gguf
 
 ### Python template
 # Byte-compiled / optimized / DLL files
