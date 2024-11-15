@@ -1,6 +1,8 @@
 from db import DB
 import args
+
 from lost_link.ai.models import ModelManager
+from lost_link.dir_manager import DirManager
 from lost_link.models.local_file import LocalFileManager
 from lost_link.sources.dir_watcher import DirWatcher
 
@@ -9,7 +11,10 @@ def main():
     arguments = parser.parse_args()
     run_debug = arguments.debug
 
-    db = DB(r"test.db", debug=run_debug)
+    dir_manager = DirManager("../workdir")
+    dir_manager.create_workspace()
+
+    db = DB(dir_manager.get_db_path(), debug=run_debug)
     local_file_manager = LocalFileManager(db)
 
     if arguments.background:
@@ -17,7 +22,7 @@ def main():
         dir_watcher.watch([r"D:\tmp\Neuer Ordner"])
         return
 
-    model_manager = ModelManager("../workdir/models")
+    model_manager = ModelManager(dir_manager.get_model_dir())
 
     print("Started File History AI:")
     print("Prepare ai models")
