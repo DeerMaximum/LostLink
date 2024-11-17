@@ -42,5 +42,13 @@ class LocalFileManager:
         stmt = select(LocalFile).where(LocalFile.last_seen < date)
         return self._session.scalars(stmt).all()
 
+    def get_all_edited_files(self) -> Sequence[LocalFile]:
+        stmt = select(LocalFile).where(LocalFile.edited == True)
+        return self._session.scalars(stmt).all()
+
+    def get_all_deleted_files(self) -> Sequence[LocalFile]:
+        stmt = select(LocalFile).where(LocalFile.deleted == True)
+        return self._session.scalars(stmt).all()
+
     def save_updates(self):
         self._session.commit()
