@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from stat import FILE_ATTRIBUTE_HIDDEN
 
 from lost_link.models.local_file import LocalFileManager, LocalFile
 from watchfiles import watch, Change
@@ -21,6 +22,12 @@ class DirWatcher:
         if len(extensions) == 0:
             return True
         return os.path.splitext(path)[1] in extensions
+
+    @staticmethod
+    def _is_path_hidden(path: str) -> bool:
+        if not os.path.exists(path):
+            return True
+        return bool(os.stat(path).st_file_attributes & FILE_ATTRIBUTE_HIDDEN)
 
     @staticmethod
     def _get_last_modification_date(path: str) -> float:
@@ -72,7 +79,8 @@ class DirWatcher:
 
                 if (os.path.isdir(path) or
                         not self._file_is_in_size_limit(path) or
-                        not self._file_has_extension(path, allowed_extensions)):
+                        not self._file_has_extension(path, allowed_extensions) or
+                        self._is_path_hidden(path)):
                     continue
 
                 if change[0] == 1:

@@ -11,7 +11,7 @@ class DirScanner:
         self._file_manager = local_file_manager
 
     @staticmethod
-    def _is_folder_hidden(entry: os.DirEntry) -> bool:
+    def _is_entry_hidden(entry: os.DirEntry) -> bool:
         return bool(entry.stat().st_file_attributes & FILE_ATTRIBUTE_HIDDEN)
 
     @staticmethod
@@ -28,11 +28,11 @@ class DirScanner:
 
         for file in os.scandir(path):
             if file.is_dir():
-                if not self._is_folder_hidden(file):
+                if not self._is_entry_hidden(file):
                     subfolders.append(file.path)
             else:
                 try:
-                    if self._file_has_extension(file, allowed_extensions) and self._file_is_in_size_limit(file):
+                    if self._file_has_extension(file, allowed_extensions) and self._file_is_in_size_limit(file) and not self._is_entry_hidden(file):
                         files.append(file.path)
                 except OSError:
                     pass
