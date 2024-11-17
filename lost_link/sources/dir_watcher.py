@@ -22,9 +22,16 @@ class DirWatcher:
             return True
         return os.path.splitext(path)[1] in extensions
 
+    @staticmethod
+    def _get_last_modification_date(path: str) -> float:
+        try:
+            return os.path.getmtime(path)
+        except FileNotFoundError:
+            return datetime.now().timestamp()
+
     def _handle_add(self, event: tuple[Change, str]):
         path = event[1]
-        change_time = os.path.getmtime(path)
+        change_time = self._get_last_modification_date(path)
         local_file = self._file_manager.get_file_by_path(path)
 
         if local_file:
@@ -42,7 +49,7 @@ class DirWatcher:
 
     def _handle_modified(self, event: tuple[Change, str]):
         path = event[1]
-        change_time = os.path.getmtime(path)
+        change_time = self._get_last_modification_date(path)
         local_file = self._file_manager.get_file_by_path(path)
         if local_file is None:
             self._handle_add(event)
