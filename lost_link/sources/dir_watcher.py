@@ -12,6 +12,8 @@ class DirWatcher:
         self._file_manager = local_file_manager
 
     def _file_is_in_size_limit(self, path: str) -> bool:
+        if not os.path.exists(path):
+            return True
         return os.path.getsize(path) <= self.MAX_FILE_SIZE
 
     @staticmethod
