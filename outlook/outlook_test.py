@@ -28,12 +28,21 @@ if 'access_token' in access_token_response:
     access_token = access_token_response['access_token']
     headers = {'Authorization': 'Bearer ' + access_token}
 
-    # E-Mail-Anfrage: Nur E-Mails nach dem letzten Zeitstempel abrufen
+    # E-Mail-Anfrage: Nur E-Mails nach dem letzten Zeitstempel abrufen, die Anhänge enthalten
     graph_request_url = base_graph_request_url + 'me/messages'
-    
-    # Wenn ein Zeitstempel existiert, nur Mails nach diesem abrufen
+    filters = []
+
+    # Filter für Zeitstempel hinzufügen, wenn vorhanden
     if last_run_timestamp:
-        graph_request_url += f"?$filter=receivedDateTime ge {last_run_timestamp}"
+        filters.append(f"receivedDateTime ge {last_run_timestamp}")
+
+    # Filter für E-Mails mit Anhängen
+    filters.append("hasAttachments eq true")
+
+    # Kombinieren der Filter
+    if filters:
+        filter_query = " and ".join(filters)
+        graph_request_url += f"?$filter={filter_query}"
 
     response = requests.get(graph_request_url, headers=headers)
     messages = response.json().get("value", [])
@@ -56,7 +65,7 @@ if 'access_token' in access_token_response:
                 attachment_id = attachment['id']
                 download_url = f"{base_graph_request_url}/me/messages/{message_id}/attachments/{attachment_id}/$value"
                 download_response = requests.get(download_url, headers=headers)
-                
+
                 # Dateiname mit Zeitstempel, um Überschreibungen zu vermeiden
                 timestamp = datetime.now().strftime("%Y_%m_%d__%H_%M_%S")
                 filename = attachment.get('name', 'Unbenannt')
@@ -66,14 +75,14 @@ if 'access_token' in access_token_response:
                 # Datei speichern
                 with open(filepath, mode="wb") as file:
                     file.write(download_response.content)
-                print(f"Anhang '{filename}' wurde erfolgreich heruntergeladen und unter '{filepath}' gespeichert.")      
+                print(f"Anhang '{filename}' wurde erfolgreich heruntergeladen und unter '{filepath}' gespeichert.")
 
     # Speichern des aktuellen Zeitstempels, um die nächste Anfrage darauf abzustimmen
     timestamp = datetime.now(pytz.UTC).isoformat()
     current_timestamp = timestamp[:-6] + 'Z'
     with open(timestamp_file, 'w') as file:
         file.write(current_timestamp)
-        
+
     print(graph_request_url)
 else:
     print("Fehler bei der Authentifizierung oder Token-Abruf.")
