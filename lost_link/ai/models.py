@@ -3,10 +3,10 @@ import requests
 from tqdm import tqdm
 
 class ModelManager:
-    LLM_MODELS = ("llama3.2-3b.gguf", "https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q6_K_L.gguf?download=true",)
+    LLM_MODEL = ("llama3.2-3b.gguf", "https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q6_K_L.gguf?download=true",)
     EMBEDDING_MODEL = ("mxbai-embed-large.gguf", "https://huggingface.co/ChristianAzinn/mxbai-embed-large-v1-gguf/resolve/main/mxbai-embed-large-v1.Q8_0.gguf?download=true")
 
-    ALL_MODELS = [LLM_MODELS, EMBEDDING_MODEL]
+    ALL_MODELS = [LLM_MODEL, EMBEDDING_MODEL]
 
     def __init__(self, model_paths):
         self._model_paths = model_paths
@@ -37,4 +37,4 @@ class ModelManager:
         return self.EMBEDDING_MODEL[0]
 
     def get_llm_model_filename(self):
-        return self.LLM_MODELS[0]
+        return self.LLM_MODEL[0]
