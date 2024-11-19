@@ -2,7 +2,7 @@ import requests
 import json
 import os
 
-from lost_link.graph_api_authentication import GraphAPIAuthentication
+from graph_api_authentication import GraphAPIAuthentication
 
 
 class GraphAPIAccess:
@@ -34,36 +34,28 @@ class GraphAPIAccess:
 
 
 class OneDriveAccess:
+    
+    @staticmethod
+    def update_delta():
+        request_url = "https://graph.microsoft.com/v1.0/me/drive/root/delta"
+        delta_link = GraphAPIAccess.read_delta_link()
+        if delta_link:
+            request_url = delta_link
+        
+        response = GraphAPIAccess.api_request(request_url)
+        new_delta_link = response.get("@odata.deltaLink", "")
+        # TODO: Behandeln, wenn nextLink für zusätzliche Delta_Daten kommt stattneuem deltaLink
+        files = response.get("value", "")
+
+        OneDriveAccess.handle_delta_files(files)
+        
+        if new_delta_link:
+            GraphAPIAccess.save_delta_link(new_delta_link)
+
 
     @staticmethod
-    def update():
-        delta_link = GraphAPIAccess.read_delta_link()
-        
-        if delta_link:
-            # Führe die Delta-Abfrage mit dem gespeicherten Delta-Link aus
-            request_url = delta_link
-            response = GraphAPIAccess.api_request(request_url)
-            new_delta_link = response.get("@odata.deltaLink", "")
-            files = response.get("value", "")
-            
-            for file in files:
-                print(file)     #TODO: Auswerten und in DB aktualisieren
-
-            if new_delta_link:
-                GraphAPIAccess.save_delta_link(new_delta_link)
-        else:
-            # Führe die erste Delta-Abfrage ohne Delta-Link aus
-            request_url = "https://graph.microsoft.com/v1.0/me/drive/root/delta"
-            response = GraphAPIAccess.api_request(request_url)
-            new_delta_link = response.get("@odata.deltaLink", "")
-            files = response.get("value", "")
-
-            for file in files:
-                print(file)     #TODO: Auswerten und in DB aktualisieren
-            
-            # Speichere den initialen Delta-Link
-            if new_delta_link:
-                GraphAPIAccess.save_delta_link(new_delta_link)
-
+    def handle_delta_files(files):
+        for file in files:
+            print(file)     #TODO: Auswerten und in DB aktualisieren
 
 

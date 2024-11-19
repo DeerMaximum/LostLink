@@ -14,7 +14,7 @@ def main():
     db = DB(r"test.db", debug=run_debug)
     local_file_manager = LocalFileManager(db)
 
-    OneDriveAccess.update()
+    OneDriveAccess.update_delta()
 
     if arguments.background:
         dir_watcher = DirWatcher(local_file_manager)
