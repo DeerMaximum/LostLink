@@ -1,8 +1,9 @@
+from datetime import datetime
 import requests
 import json
 import os
 
-from graph_api_authentication import GraphAPIAuthentication
+from lost_link.remote.graph_api_authentication import GraphAPIAuthentication
 
 
 class GraphAPIAccess:
@@ -34,9 +35,9 @@ class GraphAPIAccess:
 
 
 class OneDriveAccess:
-    
+
     @staticmethod
-    def update_delta():
+    def get_delta_changes():
         request_url = "https://graph.microsoft.com/v1.0/me/drive/root/delta"
         delta_link = GraphAPIAccess.read_delta_link()
         if delta_link:
@@ -44,18 +45,16 @@ class OneDriveAccess:
         
         response = GraphAPIAccess.api_request(request_url)
         new_delta_link = response.get("@odata.deltaLink", "")
-        # TODO: Behandeln, wenn nextLink für zusätzliche Delta_Daten kommt stattneuem deltaLink
-        files = response.get("value", "")
+        delta_changes = response.get("value", "")
+        # TODO: Behandeln, wenn nextLink für zusätzliche Delta_Daten kommt statt neuem deltaLink
 
-        OneDriveAccess.handle_delta_files(files)
-        
         if new_delta_link:
             GraphAPIAccess.save_delta_link(new_delta_link)
-
-
-    @staticmethod
-    def handle_delta_files(files):
-        for file in files:
-            print(file)     #TODO: Auswerten und in DB aktualisieren
-
+        return delta_changes
+    
+    staticmethod
+    def search_drive_item(item_id: str):
+        request_url = "https://graph.microsoft.com/v1.0/me/drive/items/" + item_id
+        response = GraphAPIAccess.api_request(request_url)
+        return response
 

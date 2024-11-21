@@ -1,10 +1,11 @@
 from db import DB
 import args
 
-from graph_api_access import OneDriveAccess
+from lost_link.remote.graph_api_access import OneDriveAccess
 from lost_link.models.local_file import LocalFileManager
 from lost_link.models.remote_file import RemoteFileManager
 from lost_link.sources.dir_watcher import DirWatcher
+from remote.remote_file_synchronizer import RemoteFileSynchronizer
 
 def main():
     parser = args.init_argparser()
@@ -14,7 +15,12 @@ def main():
     db = DB(r"test.db", debug=run_debug)
     local_file_manager = LocalFileManager(db)
 
-    OneDriveAccess.update_delta()
+    remote_file_manager = RemoteFileManager(db)
+    remote_file_synchronizer = RemoteFileSynchronizer(remote_file_manager)
+
+    remote_file_synchronizer.update_remote_files()
+
+    # OneDriveAccess.update_delta()
 
     if arguments.background:
         dir_watcher = DirWatcher(local_file_manager)
