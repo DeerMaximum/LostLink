@@ -5,6 +5,7 @@ class DirManager:
     def __init__(self, workspace_path):
         self._workspace_path = workspace_path
         self._db_path = os.path.join(self._workspace_path, 'data.db')
+        self._settings_path = os.path.join(self._workspace_path, 'settings.json')
         self._model_dir = os.path.join(self._workspace_path, 'models')
         self._vector_db_dir = os.path.join(self._workspace_path, 'vector-db')
         self._tmp_dir = os.path.join(self._workspace_path, 'tmp')
@@ -38,3 +39,6 @@ class DirManager:
 
     def get_tmp_dir(self):
         return self._tmp_dir
+
+    def get_settings_path(self):
+        return self._settings_path

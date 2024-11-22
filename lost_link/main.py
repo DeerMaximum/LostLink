@@ -9,6 +9,8 @@ from langchain_chroma import Chroma
 from lost_link.ai.models import ModelManager
 from lost_link.dir_manager import DirManager
 from lost_link.models.local_file import LocalFileManager
+from lost_link.settings import Settings
+from lost_link.sources.dir_scanner import DirScanner
 from lost_link.sources.dir_watcher import DirWatcher
 
 def main():
@@ -19,12 +21,14 @@ def main():
     dir_manager = DirManager("../workdir")
     dir_manager.create_workspace()
 
+    settings = Settings(dir_manager.get_settings_path())
+
     db = DB(dir_manager.get_db_path(), debug=run_debug)
     local_file_manager = LocalFileManager(db)
 
     if arguments.background:
         dir_watcher = DirWatcher(local_file_manager)
-        dir_watcher.watch([r"D:\tmp\Neuer Ordner"])
+        dir_watcher.watch(local_paths, ALLOWED_EXTENSIONS)
         return
 
     model_manager = ModelManager(dir_manager.get_model_dir())
