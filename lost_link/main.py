@@ -7,6 +7,7 @@ import args
 from langchain_chroma import Chroma
 
 from lost_link.ai.models import ModelManager
+from lost_link.const import ALLOWED_EXTENSIONS
 from lost_link.dir_manager import DirManager
 from lost_link.models.local_file import LocalFileManager
 from lost_link.settings import Settings
@@ -27,6 +28,12 @@ def main():
     local_file_manager = LocalFileManager(db)
 
     if arguments.background:
+        local_paths = settings.get(settings.KEY_LOCAL_PATHS, [])
+        if local_file_manager.get_file_count() == 0:
+            print("Running first dir scan")
+            dir_scanner = DirScanner(local_file_manager)
+            dir_scanner.fetch_changed_files(local_paths, ALLOWED_EXTENSIONS)
+
         dir_watcher = DirWatcher(local_file_manager)
         dir_watcher.watch(local_paths, ALLOWED_EXTENSIONS)
         return

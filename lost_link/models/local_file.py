@@ -38,6 +38,9 @@ class LocalFileManager:
     def remove_file(self, file: LocalFile):
         self._session.delete(file)
 
+    def get_file_count(self) -> int:
+        return self._session.query(LocalFile).count()
+
     def get_all_files_seen_before(self, date: datetime) -> Sequence[LocalFile]:
         stmt = select(LocalFile).where(LocalFile.last_seen < date)
         return self._session.scalars(stmt).all()
