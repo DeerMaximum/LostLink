@@ -11,6 +11,7 @@ class GraphAPIAccess:
     @staticmethod
     def api_request(request_url: str):
         headers = GraphAPIAuthentication.get_access_token_header(['User.Read', 'Files.Read'])
+        headers["Prefer"] = "deltaExcludeParent"      
         response = requests.get(request_url, headers=headers)
         return response.json()
 
@@ -45,8 +46,14 @@ class OneDriveAccess:
         
         response = GraphAPIAccess.api_request(request_url)
         new_delta_link = response.get("@odata.deltaLink", "")
+        next_link = response.get("@odata.nextLink", "")
         delta_changes = response.get("value", "")
-        # TODO: Behandeln, wenn nextLink für zusätzliche Delta_Daten kommt statt neuem deltaLink
+
+        while next_link:
+            next_link_response = GraphAPIAccess.api_request(next_link)
+            new_delta_link = next_link_response.get("@odata.deltaLink", "")
+            next_link = next_link_response.get("@odata.nextLink", "")
+            delta_changes = delta_changes + next_link_response.get("value", "")
 
         if new_delta_link:
             GraphAPIAccess.save_delta_link(new_delta_link)
