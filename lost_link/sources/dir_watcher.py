@@ -26,7 +26,7 @@ class DirWatcher:
     @staticmethod
     def _is_path_hidden(path: str) -> bool:
         if not os.path.exists(path):
-            return True
+            return False
         return bool(os.stat(path).st_file_attributes & FILE_ATTRIBUTE_HIDDEN)
 
     @staticmethod
