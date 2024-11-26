@@ -3,7 +3,7 @@ import json
 import os
 
 import requests
-from models.remote_file import RemoteFile, RemoteFileManager
+from lost_link.models.remote_file import RemoteFile, RemoteFileManager
 from remote.graph_api_access import OneDriveAccess
 
 
@@ -27,7 +27,6 @@ class RemoteFileSynchronizer:
         for file_change in file_changes:
             self._handle_file(file_change)
         
-        self._file_manager.save_updates()
     
     def _handle_file(self, file_change: dict):
         if not file_change:
@@ -45,6 +44,7 @@ class RemoteFileSynchronizer:
             self._file_manager.add_file(
                 self._create_remote_file(drive_item, embeddings_id)
             )
+            self._file_manager.save_updates()
 
         # Changed files
         if db_file and not "deleted" in file_change:
@@ -54,10 +54,12 @@ class RemoteFileSynchronizer:
             self._file_manager.add_file(
                 self._create_remote_file(drive_item, embeddings_id)
             )
+            self._file_manager.save_updates()
 
         # Deleted files
         if db_file and "deleted" in file_change:
             self._file_manager.remove_file(db_file)
+            self._file_manager.save_updates()
         
     def _create_remote_file(self, drive_item: dict, embeddings_id: int) -> RemoteFile:
         if not drive_item:

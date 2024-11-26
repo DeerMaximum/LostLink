@@ -6,7 +6,7 @@ from sqlalchemy import String, DateTime, Float
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import select
 
-from db import DB
+from lost_link.db import DB
 from .base import Base
 
 
