@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from stat import FILE_ATTRIBUTE_HIDDEN
 
-from lost_link.models.local_file import LocalFileManager, LocalFile
+from lost_link.db.local_file_manager import LocalFileManager, LocalFile
 from watchfiles import watch, Change
 
 
@@ -50,7 +50,6 @@ class DirWatcher:
         self._file_manager.add_file(LocalFile(
             path=path,
             last_change_date=change_time,
-            embeddings_id=None,
             last_seen=datetime.now()
         ))
 

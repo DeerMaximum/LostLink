@@ -18,10 +18,11 @@ class Settings:
 
         settings_exists = os.path.exists(path)
 
-        with open(path, 'w+', encoding='utf-8') as file:
-            if not settings_exists:
+        if not settings_exists:
+            with open(path, 'w', encoding='utf-8') as file:
                 json.dump(self._SETTINGS_TEMPLATE, file, ensure_ascii=False, indent=4)
-            else:
+        else:
+            with open(path, 'r', encoding='utf-8') as file:
                 self._settings = json.load(file)
 
     def get(self, key: str, default=None):
