@@ -3,7 +3,6 @@ import json
 import os
 import webbrowser
 import msal
-from msal import PublicClientApplication
 
 APPLICATION_ID = '792e4432-f94f-4e9a-ae07-d4d155c30a9c'
 authority_url = 'https://login.microsoftonline.com/consumers/'

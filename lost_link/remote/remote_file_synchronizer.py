@@ -3,14 +3,17 @@ import json
 import os
 
 import requests
-from lost_link.models.remote_file import RemoteFile, RemoteFileManager
+from models.remote_file import RemoteFile
+from models.remote_file_manager import RemoteFileManager
+from models.delta_link_manager import DeltaLinkManager
 from remote.graph_api_access import OneDriveAccess
 
 
 class RemoteFileSynchronizer:
 
-    def __init__(self,  remote_file_manager: RemoteFileManager):
+    def __init__(self,  remote_file_manager: RemoteFileManager, delta_link_manager: DeltaLinkManager):
         self._file_manager = remote_file_manager
+        self._delta_link_manager = delta_link_manager
 
     def update_remote_files(self):
         """
@@ -19,7 +22,7 @@ class RemoteFileSynchronizer:
         - Fetches the delta changes from OneDrive.
         - Updates the local database to reflect added, modified, or deleted files.
         """
-        one_drive_access = OneDriveAccess()
+        one_drive_access = OneDriveAccess(self._delta_link_manager)
         delta_changes = one_drive_access.get_delta_changes()
         file_changes = self._filter_document_files(delta_changes)
         # self._pretty_print_json(file_changes)

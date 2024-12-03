@@ -1,10 +1,10 @@
 from db import DB
 import args
 
-from lost_link.remote.graph_api_access import OneDriveAccess
-from lost_link.models.local_file import LocalFileManager
-from lost_link.models.remote_file import RemoteFileManager
-from lost_link.sources.dir_watcher import DirWatcher
+from sources.dir_watcher import DirWatcher
+from models.delta_link_manager import DeltaLinkManager
+from models.local_file_manager import LocalFileManager
+from models.remote_file_manager import RemoteFileManager
 from remote.remote_file_synchronizer import RemoteFileSynchronizer
 
 def main():
@@ -16,24 +16,16 @@ def main():
     local_file_manager = LocalFileManager(db)
 
     remote_file_manager = RemoteFileManager(db)
-    remote_file_synchronizer = RemoteFileSynchronizer(remote_file_manager)
+    delta_link_manager = DeltaLinkManager(db)
+    remote_file_synchronizer = RemoteFileSynchronizer(remote_file_manager, delta_link_manager)
 
     remote_file_synchronizer.update_remote_files()
-
-    # OneDriveAccess.update_delta()
 
     if arguments.background:
         dir_watcher = DirWatcher(local_file_manager)
         dir_watcher.watch([r"C:\tmp\Neuer Ordner"])
         return
 
-    # print("Started File History AI:")
-    #print("--- authenticate for graph api")
-    #print("--- find and download files via api ---")
-    #print("--- load files ---")
-    #print("--- create embeddings ---")
-    #print("--- cluster files ---")
-    #print("--- create history for clusters")
 
 
 

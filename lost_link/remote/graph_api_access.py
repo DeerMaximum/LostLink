@@ -3,7 +3,8 @@ import requests
 import json
 import os
 
-from lost_link.remote.graph_api_authentication import GraphAPIAuthentication
+from remote.graph_api_authentication import GraphAPIAuthentication
+from models.delta_link_manager import DeltaLinkManager 
 
 
 class GraphAPIAccess:
@@ -15,32 +16,15 @@ class GraphAPIAccess:
         response = requests.get(request_url, headers=headers)
         return response.json()
 
-    @staticmethod
-    def save_delta_link(delta_link: str, file_path: str="delta_links.json", domain: str="OneDrive"):
-        data = {}
-        if os.path.exists(file_path):
-            with open(file_path, 'r') as file:
-                data = json.load(file)
-        data[domain] = delta_link
-
-        with open(file_path, 'w') as file:
-            json.dump(data, file, indent=4)
-
-    @staticmethod
-    def read_delta_link(file_path: str = "delta_links.json", domain: str = "OneDrive") -> str:
-        if os.path.exists(file_path):
-            with open(file_path, 'r') as file:
-                data = json.load(file)
-                return data.get(domain, "")
-        return ""
-
 
 class OneDriveAccess:
 
-    @staticmethod
-    def get_delta_changes():
+    def __init__(self, delta_link_manager: DeltaLinkManager):
+        self._delta_link_manager = delta_link_manager
+
+    def get_delta_changes(self):
         request_url = "https://graph.microsoft.com/v1.0/me/drive/root/delta"
-        delta_link = GraphAPIAccess.read_delta_link()
+        delta_link = self._delta_link_manager.get_delta_link("OneDrive")
         if delta_link:
             request_url = delta_link
         
@@ -56,7 +40,7 @@ class OneDriveAccess:
             delta_changes = delta_changes + next_link_response.get("value", "")
 
         if new_delta_link:
-            GraphAPIAccess.save_delta_link(new_delta_link)
+            self._delta_link_manager.save_delta_link("OneDrive", new_delta_link)
         return delta_changes
     
     staticmethod

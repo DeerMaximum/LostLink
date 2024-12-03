@@ -2,8 +2,9 @@ import os
 from datetime import datetime
 from stat import FILE_ATTRIBUTE_HIDDEN
 
-from lost_link.models.local_file import LocalFileManager, LocalFile
 from watchfiles import watch, Change
+from models.local_file import LocalFile
+from models.local_file_manager import LocalFileManager
 
 
 class DirWatcher:

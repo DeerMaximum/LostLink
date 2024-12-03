@@ -4,6 +4,8 @@ from models.base import Base
 
 # noinspection PyUnresolvedReferences
 import models.local_file
+import models.remote_file
+import models.delta_link
 
 
 class DB:

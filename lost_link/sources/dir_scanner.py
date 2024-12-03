@@ -2,7 +2,8 @@ import os
 from datetime import datetime
 from stat import FILE_ATTRIBUTE_HIDDEN
 
-from lost_link.models.local_file import LocalFile, LocalFileManager
+from models.local_file import LocalFile
+from models.local_file_manager import LocalFileManager
 
 class DirScanner:
     MAX_FILE_SIZE = 1024 * 1024 * 50 # 50 MB
