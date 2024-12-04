@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from stat import FILE_ATTRIBUTE_HIDDEN
 
-from lost_link.models.local_file import LocalFile, LocalFileManager
+from lost_link.db.local_file_manager import LocalFile, LocalFileManager
 
 class DirScanner:
     MAX_FILE_SIZE = 1024 * 1024 * 50 # 50 MB
@@ -56,7 +56,6 @@ class DirScanner:
                 self._file_manager.add_file(LocalFile(
                     path=file,
                     last_change_date=change_time,
-                    embeddings_id=None,
                     last_seen=scan_date
                 ))
 
