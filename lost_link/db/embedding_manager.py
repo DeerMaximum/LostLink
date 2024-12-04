@@ -1,5 +1,5 @@
 from lost_link.db.db import DB
-from lost_link.db.models import Embedding
+from lost_link.db.db_models import Embedding
 
 class EmbeddingManager:
 

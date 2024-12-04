@@ -3,7 +3,7 @@ from typing import  Sequence
 from sqlalchemy import select
 
 from lost_link.db.db import DB
-from lost_link.db.models import LocalFile
+from lost_link.db.db_models import LocalFile
 
 class LocalFileManager:
 

@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from lost_link.db.models import Base
+from lost_link.db.db_models import Base
 
 
 class DB:
