@@ -16,6 +16,7 @@ from lost_link.db.db import DB
 from lost_link.dir_manager import DirManager
 from lost_link.db.local_file_manager import LocalFileManager
 from lost_link.db.embedding_manager import EmbeddingManager
+from lost_link.remote.graph_api_authentication import GraphAPIAuthentication
 from lost_link.settings import Settings
 from lost_link.sources.dir_scanner import DirScanner
 from lost_link.sources.dir_watcher import DirWatcher
@@ -78,6 +79,8 @@ def main():
     file_converter = FileToDocumentConverter()
     embedding_generator = EmbeddingGenerator(vector_db, embeddings_manager, file_converter)
     ServiceLocator.register_service("embedding_generator", embedding_generator)
+
+    graph_auth = GraphAPIAuthentication(settings.get(settings.KEY_APP_ID, ""))
 
     local_file_processor = LocalFileProcessor(local_file_manager, embeddings_manager,file_converter, vector_db)
     remote_file_synchronizer = RemoteFileSynchronizer(one_drive_file_manager, share_point_file_manager, delta_link_manager)
