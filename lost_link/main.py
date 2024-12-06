@@ -82,9 +82,7 @@ def main():
     embedding_generator = EmbeddingGenerator(vector_db, embeddings_manager, file_converter)
     ServiceLocator.register_service("embedding_generator", embedding_generator)
 
-    graph_auth = GraphAPIAuthentication(settings.get(settings.KEY_APP_ID, ""))
-    graph_access = GraphAPIAccess(graph_auth)
-    o_acc = OutlookAccess(graph_access)
+    o_acc = OutlookAccess()
     outlook = Outlook(o_acc, attachment_manager, embeddings_manager, file_converter, vector_db, dir_manager.get_tmp_dir(), settings )
 
     local_file_processor = LocalFileProcessor(local_file_manager, embeddings_manager,file_converter, vector_db)

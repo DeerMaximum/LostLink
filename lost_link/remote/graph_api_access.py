@@ -11,26 +11,22 @@ from lost_link.service_locator import ServiceLocator
 from requests import Response
 
 class GraphAPIAccess:
-    def __init__(self, graph_auth: GraphAPIAuthentication):
-        self._graph_auth = graph_auth
 
-    def api_request(self, request_url: str) -> dict[str, Any]:
-        response = self.raw_request(request_url)
+    @staticmethod
+    def api_request(request_url: str) -> dict[str, Any]:
+        response = GraphAPIAccess.raw_request(request_url)
         return response.json()
 
-    def raw_request(self, request_url: str) -> Response:
+    @staticmethod
+    def raw_request(request_url: str) -> Response:
         graph_api_authentication = ServiceLocator.get_service("auth")
         headers = graph_api_authentication.get_access_token_header(['Files.Read', 'Sites.Read.All'])
         headers["Prefer"] = "deltaExcludeParent"
         return requests.get(request_url, headers=headers)
 
 class OutlookAccess:
-
     BASE_URL = "https://graph.microsoft.com/v1.0/me/messages"
     TRASH_URL = "https://graph.microsoft.com/v1.0/me/mailFolders/RecoverableItemsDeletions/messages"
-
-    def __init__(self, graph_api: GraphAPIAccess):
-        self._graph_api = graph_api
 
     @staticmethod
     def _build_fetch_url(base_url: str, start_date: datetime) -> str:
@@ -46,21 +42,21 @@ class OutlookAccess:
     def get_message_ids(self, start_date: datetime) -> list[tuple[str, str]]:
         url = self._build_fetch_url(self.BASE_URL, start_date)
 
-        response = self._graph_api.api_request(url)
+        response = GraphAPIAccess.api_request(url)
 
         return [(x["id"], x["internetMessageId"]) for x in response.get("value", [])]
 
     def get_message_ids_trash(self, start_date: datetime) -> list[str]:
         url = self._build_fetch_url(self.TRASH_URL, start_date)
 
-        response = self._graph_api.api_request(url)
+        response = GraphAPIAccess.api_request(url)
 
         return [x["internetMessageId"] for x in response.get("value", [])]
 
 
     def get_attachments(self, msg_id: str) -> list[tuple[str, str]]:
         att_id_url = f"{self.BASE_URL}/{msg_id}/attachments?$select=id,name"
-        att_ids_response = self._graph_api.api_request(att_id_url)
+        att_ids_response = GraphAPIAccess.api_request(att_id_url)
 
         return [(a["id"], a["name"])
                 for a in att_ids_response.get("value", [])
@@ -70,7 +66,7 @@ class OutlookAccess:
         url = f"{self.BASE_URL}/{msg_id}/attachments/{att_id}/$value"
 
         try:
-            response = self._graph_api.raw_request(url)
+            response = GraphAPIAccess.raw_request(url)
             response.raise_for_status()
             with open(path, mode="wb") as file:
                 file.write(response.content)
