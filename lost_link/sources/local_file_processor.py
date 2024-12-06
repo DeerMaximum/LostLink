@@ -22,7 +22,7 @@ class LocalFileProcessor:
         for i in range(len(documents)):
             self._embedding_manager.add_embedding(Embedding(
                 id = ids[i],
-                file_id=file.id
+                local_file_id=file.id
             ))
 
         self._embedding_manager.save_updates()
