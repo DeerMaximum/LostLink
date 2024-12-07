@@ -10,6 +10,7 @@ from lost_link.db.db_models import Attachment, Embedding
 from lost_link.db.embedding_manager import EmbeddingManager
 from lost_link.remote.graph_api_access import OutlookAccess
 from lost_link.settings import Settings
+from lost_link.const import ALLOWED_EXTENSIONS
 
 
 class Outlook:
@@ -57,7 +58,11 @@ class Outlook:
 
     def _process_new_attachments(self, new_attachments: list[Attachment]):
         for new_attachment in new_attachments:
-            filename = f"{uuid.uuid4().hex}{os.path.splitext(new_attachment.name)[1]}"
+            extension = os.path.splitext(new_attachment.name)[1]
+            if extension not in ALLOWED_EXTENSIONS:
+                continue
+
+            filename = f"{uuid.uuid4().hex}{extension}"
             path = os.path.join(self._tmp_base_path, filename)
             self._api.download_attachment(new_attachment.msg_id, new_attachment.id, path)
 
