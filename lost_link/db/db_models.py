@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy.orm import DeclarativeBase
 import uuid
@@ -27,3 +28,32 @@ class LocalFile(Base):
     deleted: Mapped[bool] = mapped_column(Boolean(), default=False)
 
     embeddings: Mapped[list[Embedding]] = relationship('Embedding', backref='local_file')
+
+class OneDriveFile(Base):
+    __tablename__ = 'one_drive_file'
+
+    id: Mapped[str] = mapped_column(String(), primary_key=True)
+    name: Mapped[str] = mapped_column(String(), nullable=True)
+    #path: Mapped[Optional[str]] = mapped_column(String(), nullable=True)
+    embeddings_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    last_modified_date: Mapped[datetime] = mapped_column(DateTime())
+    last_seen: Mapped[datetime] = mapped_column(DateTime())
+
+class SharePointFile(Base):
+    __tablename__ = 'share_point_file'
+
+    id: Mapped[str] = mapped_column(String(), primary_key=True)
+    site_id: Mapped[str] = mapped_column(String(), primary_key=True)
+    name: Mapped[str] = mapped_column(String(), nullable=True)
+    #path: Mapped[Optional[str]] = mapped_column(String(), nullable=True)
+    embeddings_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    last_modified_date: Mapped[datetime] = mapped_column(DateTime())
+    last_seen: Mapped[datetime] = mapped_column(DateTime())
+
+class DeltaLink(Base):
+    __tablename__ = 'delta_links'
+
+    domain: Mapped[str] = mapped_column(String, primary_key=True)
+    delta_link: Mapped[str] = mapped_column(String, nullable=False)
+    last_updated: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+

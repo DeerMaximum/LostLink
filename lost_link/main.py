@@ -5,6 +5,9 @@ from langchain_community.embeddings import LlamaCppEmbeddings
 import args
 from langchain_chroma import Chroma
 
+from lost_link.db.delta_link_manager import DeltaLinkManager
+from lost_link.db.one_drive_file_manager import OneDriveFileManager
+from lost_link.db.share_point_file_manager import SharePointFileManager
 from lost_link.ai.file_to_document import FileToDocumentConverter
 from lost_link.ai.models import ModelManager
 from lost_link.const import ALLOWED_EXTENSIONS
@@ -16,6 +19,7 @@ from lost_link.settings import Settings
 from lost_link.sources.dir_scanner import DirScanner
 from lost_link.sources.dir_watcher import DirWatcher
 from lost_link.sources.local_file_processor import LocalFileProcessor
+from lost_link.remote.remote_file_synchronizer import RemoteFileSynchronizer
 
 
 def main():
