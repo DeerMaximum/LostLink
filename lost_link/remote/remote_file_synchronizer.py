@@ -46,6 +46,8 @@ class OneDriveSynchronizer:
 
         for file_change in file_changes:
             self._handle_file(file_change)
+
+        one_drive_access.save_delta_link()
         
     
     def _handle_file(self, file_change: dict):
@@ -105,6 +107,8 @@ class SharePointSynchronizer:
             file_changes = SynchUtil.filter_document_files(delta_changes)
             for file_change in file_changes:
                 self._handle_file(file_change, site_id)
+
+        share_point_access.save_delta_link()
                 
     def _handle_file(self, file_change: dict, site_id):
         if not file_change:

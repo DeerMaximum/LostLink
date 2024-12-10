@@ -32,20 +32,22 @@ class OneDriveAccess:
             request_url = delta_link
         
         response = GraphAPIAccess.api_request(request_url)
-        new_delta_link = response.get("@odata.deltaLink", "")
+        self._new_delta_link = response.get("@odata.deltaLink", "")
         next_link = response.get("@odata.nextLink", "")
         delta_changes = response.get("value", "")
 
         while next_link:
             next_link_response = GraphAPIAccess.api_request(next_link)
-            new_delta_link = next_link_response.get("@odata.deltaLink", "")
+            self._new_delta_link = next_link_response.get("@odata.deltaLink", "")
             next_link = next_link_response.get("@odata.nextLink", "")
             delta_changes = delta_changes + next_link_response.get("value", "")
 
-        if new_delta_link:
-            self._delta_link_manager.save_delta_link("OneDrive", new_delta_link)
         return delta_changes
     
+    def save_delta_link(self):
+        if self._new_delta_link:
+            self._delta_link_manager.save_delta_link("OneDrive", self._new_delta_link)
+
     staticmethod
     def search_drive_item(item_id: str):
         request_url = "https://graph.microsoft.com/v1.0/me/drive/items/" + item_id
@@ -64,26 +66,28 @@ class SharePointAccess:
 
     def get_delta_changes(self, site_id):
         request_url = "https://graph.microsoft.com/v1.0/sites/" + site_id + "/drive/root/delta"
-        delta_link_key = "SharePoint-" + site_id
-        delta_link = self._delta_link_manager.get_delta_link(delta_link_key)
+        self._delta_link_key = "SharePoint-" + site_id
+        delta_link = self._delta_link_manager.get_delta_link(self._delta_link_key)
         if delta_link:
             request_url = delta_link
         
         response = GraphAPIAccess.api_request(request_url)
-        new_delta_link = response.get("@odata.deltaLink", "")
+        self._new_delta_link = response.get("@odata.deltaLink", "")
         next_link = response.get("@odata.nextLink", "")
         delta_changes = response.get("value", "")
 
         while next_link:
             next_link_response = GraphAPIAccess.api_request(next_link)
-            new_delta_link = next_link_response.get("@odata.deltaLink", "")
+            self._new_delta_link = next_link_response.get("@odata.deltaLink", "")
             next_link = next_link_response.get("@odata.nextLink", "")
             delta_changes = delta_changes + next_link_response.get("value", "")
 
-        if new_delta_link:
-            self._delta_link_manager.save_delta_link(delta_link_key, new_delta_link)
         return delta_changes
     
+    def save_delta_link(self):
+        if self._new_delta_link:
+            self._delta_link_manager.save_delta_link(self._delta_link_key, self._new_delta_link)
+
     staticmethod
     def search_drive_item(site_id: str, item_id: str):
         request_url = "https://graph.microsoft.com/v1.0/sites/" + site_id + "/drive/items/" + item_id
