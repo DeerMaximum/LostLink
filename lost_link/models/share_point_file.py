@@ -9,10 +9,11 @@ from .base import Base
 
 
 
-class RemoteFile(Base):
-    __tablename__ = 'remote_file'
+class SharePointFile(Base):
+    __tablename__ = 'share_point_file'
 
     id: Mapped[str] = mapped_column(String(), primary_key=True)
+    site_id: Mapped[str] = mapped_column(String(), primary_key=True)
     name: Mapped[str] = mapped_column(String(), nullable=True)
     #path: Mapped[Optional[str]] = mapped_column(String(), nullable=True)
     embeddings_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)

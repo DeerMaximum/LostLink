@@ -4,7 +4,7 @@ import os
 import webbrowser
 import msal
 
-APPLICATION_ID = '792e4432-f94f-4e9a-ae07-d4d155c30a9c'
+APPLICATION_ID = 'df6877d7-3149-4546-b35c-dd6e39d450a2'#'792e4432-f94f-4e9a-ae07-d4d155c30a9c'
 authority_url = 'https://login.microsoftonline.com/consumers/'
 file_path = "ms_token.json"
 

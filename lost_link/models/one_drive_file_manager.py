@@ -1,9 +1,9 @@
 from sqlalchemy import select
 from db import DB
-from models.remote_file import RemoteFile
+from models.one_drive_file import OneDriveFile
 
 
-class RemoteFileManager():
+class OneDriveFileManager():
 
     def __init__(self, db: DB):
         self._db = db
@@ -12,14 +12,14 @@ class RemoteFileManager():
     def __del__(self):
         self._session.close()
 
-    def get_file_by_id(self, id) -> RemoteFile | None:
-        stmt = select(RemoteFile).where(RemoteFile.id == id)
+    def get_file_by_id(self, id) -> OneDriveFile | None:
+        stmt = select(OneDriveFile).where(OneDriveFile.id == id)
         return self._session.scalar(stmt)
     
-    def add_file(self, file: RemoteFile):
+    def add_file(self, file: OneDriveFile):
         self._session.add(file)
 
-    def remove_file(self, file: RemoteFile):
+    def remove_file(self, file: OneDriveFile):
         self._session.delete(file)
 
     def save_updates(self):

@@ -1,10 +1,11 @@
 from db import DB
 import args
 
+from models.share_point_file_manager import SharePointFileManager
 from sources.dir_watcher import DirWatcher
 from models.delta_link_manager import DeltaLinkManager
 from models.local_file_manager import LocalFileManager
-from models.remote_file_manager import RemoteFileManager
+from models.one_drive_file_manager import OneDriveFileManager
 from remote.remote_file_synchronizer import RemoteFileSynchronizer
 
 def main():
@@ -15,9 +16,10 @@ def main():
     db = DB(r"test.db", debug=run_debug)
     local_file_manager = LocalFileManager(db)
 
-    remote_file_manager = RemoteFileManager(db)
+    one_drive_file_manager = OneDriveFileManager(db)
+    share_point_file_manager = SharePointFileManager(db)
     delta_link_manager = DeltaLinkManager(db)
-    remote_file_synchronizer = RemoteFileSynchronizer(remote_file_manager, delta_link_manager)
+    remote_file_synchronizer = RemoteFileSynchronizer(one_drive_file_manager, share_point_file_manager, delta_link_manager)
 
     remote_file_synchronizer.update_remote_files()
 
