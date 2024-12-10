@@ -10,6 +10,7 @@ from db.delta_link_manager import DeltaLinkManager
 from db.one_drive_file_manager import OneDriveFileManager
 from db.share_point_file_manager import SharePointFileManager
 from remote.graph_api_access import OneDriveAccess, SharePointAccess
+from service_locator import ServiceLocator
 
 
 class RemoteFileSynchronizer:
@@ -187,11 +188,10 @@ class SynchUtil:
     def generate_file_embeddings(drive_item: dict) -> int:
         SynchUtil.download_file(drive_item)
         #TODO Embeddings generieren
-        SynchUtil.clear_download_files(exceptions=[".gitignore", ".gitkeep"])
         return None
 
     @staticmethod
-    def download_file(file_item: str, save_dir: str="file-downloads"):
+    def download_file(file_item: str):
         """
         Downloads a file from OneDrive using the given metadata and saves it locally.
 
@@ -199,6 +199,8 @@ class SynchUtil:
             file_item: A dictionary containing metadata of the file, including its `@microsoft.graph.downloadUrl` URL.
             save_dir: The directory where the file will be saved.
         """
+        dir_manager = ServiceLocator.get_service("dir_manager")
+        save_dir = dir_manager.get_tmp_dir()
         download_url = file_item.get("@microsoft.graph.downloadUrl", "")
         if not download_url:
             print("Error, no download URL found")
@@ -213,35 +215,6 @@ class SynchUtil:
             print(f"Failed to download file {file_item['name']}: {e}")
             if os.path.exists(file_path):
                 os.remove(file_path)
-
-        
-    @staticmethod
-    def clear_download_files(directory_path: str="file-downloads", exceptions: list[str] = []):
-        """
-        Clears the specified directory by deleting all files except those listed in exceptions.
-        Args:
-            directory_path: The path to the directory to clean.
-            exceptions: A list of filenames to exclude from deletion.
-        """
-        if exceptions is None:
-            exceptions = []
-
-        if not os.path.exists(directory_path):
-            print(f"Directory {directory_path} does not exist.")
-            return
-
-        for filename in os.listdir(directory_path):
-            file_path = os.path.join(directory_path, filename)
-            if filename in exceptions:
-                continue
-            try:
-                if os.path.isfile(file_path) or os.path.islink(file_path):
-                    os.remove(file_path) 
-                elif os.path.isdir(file_path):
-                    os.rmdir(file_path)
-            except Exception as e:
-                print(f"Failed to delete {file_path}. Reason: {e}")
-
     
 
     @staticmethod

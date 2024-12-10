@@ -31,6 +31,7 @@ def main():
 
     dir_manager = DirManager("../workdir")
     dir_manager.create_workspace()
+    ServiceLocator.register_service("dir_manager", dir_manager)
 
     settings = Settings(dir_manager.get_settings_path())
 
