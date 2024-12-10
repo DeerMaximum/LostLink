@@ -167,17 +167,17 @@ class SynchUtil:
 
         id = drive_item.get("id", "")
         name = drive_item.get("name", "")
-        last_modified = drive_item.get("lastModifiedDateTime", "")
-        last_modified_datetime = datetime.fromisoformat(last_modified.replace("Z", "+00:00"))
-        synchronization_date = datetime.now()
+        parent_path = drive_item.get("parentReference", {}).get("path", "")
+        path = parent_path + "/" + name
+        url = drive_item.get("webUrl", "")
 
         # Gemeinsame Felder
         file_data = {
             "id": id,
             "name": name,
+            "path": path,
+            "url": url,
             "embeddings_id": embeddings_id,
-            "last_modified_date": last_modified_datetime,
-            "last_seen": synchronization_date,
         }
 
         # Zusätzliche Felder nur hinzufügen, wenn sie gebraucht werden
