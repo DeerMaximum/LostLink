@@ -4,11 +4,11 @@ import os
 
 
 import requests
-from models.one_drive_file import OneDriveFile
-from models.one_drive_file_manager import OneDriveFileManager
-from models.share_point_file import SharePointFile
-from models.share_point_file_manager import SharePointFileManager
-from models.delta_link_manager import DeltaLinkManager
+
+from db.db_models import OneDriveFile, SharePointFile
+from db.delta_link_manager import DeltaLinkManager
+from db.one_drive_file_manager import OneDriveFileManager
+from db.share_point_file_manager import SharePointFileManager
 from remote.graph_api_access import OneDriveAccess, SharePointAccess
 
 

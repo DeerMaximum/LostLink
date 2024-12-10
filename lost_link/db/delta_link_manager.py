@@ -1,7 +1,9 @@
 from datetime import datetime
 from sqlalchemy import select
-from db import DB
-from db_models import DeltaLink
+
+from db.db import DB
+from db.db_models import DeltaLink
+
 
 
 class DeltaLinkManager:

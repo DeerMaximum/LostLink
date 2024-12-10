@@ -3,8 +3,9 @@ import requests
 import json
 import os
 
+from db.delta_link_manager import DeltaLinkManager
 from remote.graph_api_authentication import GraphAPIAuthentication
-from models.delta_link_manager import DeltaLinkManager 
+
 
 
 class GraphAPIAccess:
