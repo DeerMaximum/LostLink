@@ -4,6 +4,8 @@ test-data/*.pdf
 
 .idea
 test.db
+delta_links.json
+ms_token.json
 workdir
 *.pdf
 *gguf

@@ -32,6 +32,13 @@ def main():
     local_file_manager = LocalFileManager(db)
     embeddings_manager = EmbeddingManager(db)
 
+    one_drive_file_manager = OneDriveFileManager(db)
+    share_point_file_manager = SharePointFileManager(db)
+    delta_link_manager = DeltaLinkManager(db)
+    remote_file_synchronizer = RemoteFileSynchronizer(one_drive_file_manager, share_point_file_manager, delta_link_manager)
+
+    remote_file_synchronizer.update_remote_files()
+
     if arguments.background:
         local_paths = settings.get(settings.KEY_LOCAL_PATHS, [])
         if local_file_manager.get_file_count() == 0:
