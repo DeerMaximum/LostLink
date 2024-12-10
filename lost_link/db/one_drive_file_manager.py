@@ -3,8 +3,6 @@ from sqlalchemy import select
 from db.db import DB
 from db.db_models import OneDriveFile
 
-
-
 class OneDriveFileManager():
 
     def __init__(self, db: DB):

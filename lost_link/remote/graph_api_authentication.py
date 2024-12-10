@@ -4,9 +4,10 @@ import os
 import webbrowser
 import msal
 
-APPLICATION_ID = 'df6877d7-3149-4546-b35c-dd6e39d450a2'#'792e4432-f94f-4e9a-ae07-d4d155c30a9c'
+from dir_manager import DirManager
+from settings import Settings
+
 authority_url = 'https://login.microsoftonline.com/consumers/'
-file_path = "ms_token.json"
 
 class GraphAPIAuthentication:
     """
@@ -14,8 +15,11 @@ class GraphAPIAuthentication:
     It supports token caching to avoid unnecessary re-authentication.
     """
 
-    @staticmethod
-    def get_access_token_header(permission_scopes: list[str]) -> dict[str, str]:
+    def __init__(self, dir_manager: DirManager, settings: Settings):
+        self.application_id = settings.get(Settings.KEY_APP_ID)
+        self.token_path = dir_manager.get_auth_token_path()
+
+    def get_access_token_header(self, permission_scopes: list[str]) -> dict[str, str]:
         """
         Generates an HTTP header for authenticating requests to Microsoft Graph API using a valid access token.
 
@@ -25,14 +29,13 @@ class GraphAPIAuthentication:
         Returns:
             dict[str, str]: HTTP-Header {'Authorization': 'Bearer <Access Token>'}
         """
-        token_response = GraphAPIAuthentication.get_access_token(permission_scopes)
+        token_response = self.get_access_token(permission_scopes)
         access_token = token_response['access_token']
         headers = {'Authorization': 'Bearer ' + access_token}
         return headers
     
 
-    @staticmethod
-    def get_access_token(permission_scopes: list[str]) -> dict:
+    def get_access_token(self, permission_scopes: list[str]) -> dict:
         """
         Retrieves an access token for the specified permission scopes. 
         Uses the cached token if available and valid; otherwise, generates a new token via the MSAL device code flow. 
@@ -43,39 +46,38 @@ class GraphAPIAuthentication:
         Returns:
             dict: A dictionary containing the token response, including the access_token
         """
-        token_cache = GraphAPIAuthentication._get_serialized_token_cache(permission_scopes)
-        client = msal.PublicClientApplication(client_id=APPLICATION_ID, token_cache=token_cache)
+        token_cache = self._get_serialized_token_cache(permission_scopes)
+        client = msal.PublicClientApplication(client_id=self.application_id, token_cache=token_cache)
 
         accounts = client.get_accounts()
 
         if accounts:
             token_response = client.acquire_token_silent(permission_scopes, accounts[0])
         else:
-            token_response = GraphAPIAuthentication._generate_new_access_token(client=client, permission_scopes=permission_scopes)
+            token_response = self._generate_new_access_token(client=client, permission_scopes=permission_scopes)
 
         return token_response
     
-    @staticmethod
-    def _save_token_cache(token_cache: msal.SerializableTokenCache):
-        with open(file_path, 'w') as f:
+
+    def _save_token_cache(self, token_cache: msal.SerializableTokenCache):
+        with open(self.token_path, 'w') as f:
             f.write(token_cache.serialize())
 
-    @staticmethod
-    def _get_serialized_token_cache(permission_scopes: list[str]) -> msal.SerializableTokenCache:
+    
+    def _get_serialized_token_cache(self, permission_scopes: list[str]) -> msal.SerializableTokenCache:
         token_cache = msal.SerializableTokenCache()
-        if os.path.exists(file_path) and GraphAPIAuthentication._is_token_cache_valid(permission_scopes):
-            token_cache.deserialize(open(file_path, 'r').read())
+        if os.path.exists(self.token_path) and self._is_token_cache_valid(permission_scopes):
+            token_cache.deserialize(open(self.token_path, 'r').read())
         return token_cache
 
         
-    @staticmethod
-    def _is_token_cache_valid(requested_scopes: list[str]) -> bool:
-        if not os.path.exists(file_path):
+    def _is_token_cache_valid(self, requested_scopes: list[str]) -> bool:
+        if not os.path.exists(self.token_path):
             return False
 
         try:
             # load token-cache
-            token_detail = json.load(open(file_path))
+            token_detail = json.load(open(self.token_path))
             
             # check expiration date
             token_key = list(token_detail['AccessToken'].keys())[0]
@@ -96,8 +98,7 @@ class GraphAPIAuthentication:
             return False
 
 
-    @staticmethod
-    def _generate_new_access_token(client: msal.PublicClientApplication, permission_scopes: list[str]) -> dict:
+    def _generate_new_access_token(self, client: msal.PublicClientApplication, permission_scopes: list[str]) -> dict:
             flow = client.initiate_device_flow(scopes=permission_scopes)
             
             print(flow['message'])
@@ -105,7 +106,7 @@ class GraphAPIAuthentication:
             
             token_response = client.acquire_token_by_device_flow(flow)
         
-            GraphAPIAuthentication._save_token_cache(client.token_cache)
+            self._save_token_cache(client.token_cache)
             
             return token_response
 

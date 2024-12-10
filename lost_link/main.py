@@ -20,6 +20,8 @@ from lost_link.sources.dir_scanner import DirScanner
 from lost_link.sources.dir_watcher import DirWatcher
 from lost_link.sources.local_file_processor import LocalFileProcessor
 from lost_link.remote.remote_file_synchronizer import RemoteFileSynchronizer
+from remote.graph_api_authentication import GraphAPIAuthentication
+from service_locator import ServiceLocator
 
 
 def main():
@@ -39,6 +41,9 @@ def main():
     one_drive_file_manager = OneDriveFileManager(db)
     share_point_file_manager = SharePointFileManager(db)
     delta_link_manager = DeltaLinkManager(db)
+
+    graph_api_authentication = GraphAPIAuthentication(dir_manager,settings)
+    ServiceLocator.register_service("auth", graph_api_authentication)
     remote_file_synchronizer = RemoteFileSynchronizer(one_drive_file_manager, share_point_file_manager, delta_link_manager)
 
     remote_file_synchronizer.update_remote_files()

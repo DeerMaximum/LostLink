@@ -5,6 +5,7 @@ import os
 
 from db.delta_link_manager import DeltaLinkManager
 from remote.graph_api_authentication import GraphAPIAuthentication
+from service_locator import ServiceLocator
 
 
 
@@ -12,7 +13,8 @@ class GraphAPIAccess:
 
     @staticmethod
     def api_request(request_url: str):
-        headers = GraphAPIAuthentication.get_access_token_header(['Files.Read', 'Sites.Read.All'])
+        graph_api_authentication = ServiceLocator.get_service("auth")
+        headers = graph_api_authentication.get_access_token_header(['Files.Read', 'Sites.Read.All'])
         headers["Prefer"] = "deltaExcludeParent"      
         response = requests.get(request_url, headers=headers)
         return response.json()

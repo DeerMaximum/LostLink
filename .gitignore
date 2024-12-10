@@ -3,8 +3,6 @@ test-data/*.txt
 test-data/*.pdf
 
 .idea
-test.db
-ms_token.json
 workdir
 *.pdf
 *gguf

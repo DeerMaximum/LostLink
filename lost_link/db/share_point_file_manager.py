@@ -3,9 +3,6 @@ from sqlalchemy import select
 from db.db import DB
 from db.db_models import SharePointFile
 
-
-
-
 class SharePointFileManager():
 
     def __init__(self, db: DB):

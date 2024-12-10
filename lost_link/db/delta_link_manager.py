@@ -4,8 +4,6 @@ from sqlalchemy import select
 from db.db import DB
 from db.db_models import DeltaLink
 
-
-
 class DeltaLinkManager:
 
     def __init__(self, db: DB):
