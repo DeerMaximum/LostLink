@@ -20,8 +20,8 @@ from lost_link.sources.dir_scanner import DirScanner
 from lost_link.sources.dir_watcher import DirWatcher
 from lost_link.sources.local_file_processor import LocalFileProcessor
 from lost_link.remote.remote_file_synchronizer import RemoteFileSynchronizer
-from remote.graph_api_authentication import GraphAPIAuthentication
-from service_locator import ServiceLocator
+from lost_link.remote.graph_api_authentication import GraphAPIAuthentication
+from lost_link.service_locator import ServiceLocator
 
 
 def main():
