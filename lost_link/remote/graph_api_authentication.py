@@ -4,8 +4,8 @@ import os
 import webbrowser
 import msal
 
-from dir_manager import DirManager
-from settings import Settings
+from lost_link.dir_manager import DirManager
+from lost_link.settings import Settings
 
 authority_url = 'https://login.microsoftonline.com/consumers/'
 
