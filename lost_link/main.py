@@ -2,6 +2,7 @@ import os
 
 from langchain_community.embeddings import LlamaCppEmbeddings
 
+from ai.embedding_generator import EmbeddingGenerator
 import args
 from langchain_chroma import Chroma
 
@@ -45,9 +46,8 @@ def main():
 
     graph_api_authentication = GraphAPIAuthentication(dir_manager,settings)
     ServiceLocator.register_service("auth", graph_api_authentication)
-    remote_file_synchronizer = RemoteFileSynchronizer(one_drive_file_manager, share_point_file_manager, delta_link_manager)
 
-    remote_file_synchronizer.update_remote_files()
+    
 
     if arguments.background:
         local_paths = settings.get(settings.KEY_LOCAL_PATHS, [])
@@ -76,11 +76,15 @@ def main():
 
     vector_db = Chroma(persist_directory=dir_manager.get_vector_db_dir(), embedding_function=embeddings_model)
     file_converter = FileToDocumentConverter()
+    embedding_generator = EmbeddingGenerator(vector_db, embeddings_manager, file_converter)
+    ServiceLocator.register_service("embedding_generator", embedding_generator)
 
     local_file_processor = LocalFileProcessor(local_file_manager, embeddings_manager,file_converter, vector_db)
+    remote_file_synchronizer = RemoteFileSynchronizer(one_drive_file_manager, share_point_file_manager, delta_link_manager)
 
     print("Update embeddings")
-    local_file_processor.process_changes()
+    # local_file_processor.process_changes()
+    remote_file_synchronizer.update_remote_files()
 
 
 if __name__ == "__main__":

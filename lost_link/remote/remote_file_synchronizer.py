@@ -62,20 +62,20 @@ class OneDriveSynchronizer:
         # New files
         if db_file is None:
             drive_item = OneDriveAccess.search_drive_item(id)
-            embeddings_id = SynchUtil.generate_file_embeddings(drive_item)
             self._file_manager.add_file(
-                SynchUtil.create_remote_file(drive_item, embeddings_id, OneDriveFile)
+                SynchUtil.create_remote_file(drive_item, OneDriveFile)
             )
+            SynchUtil.generate_file_embeddings(drive_item, OneDriveFile)
             self._file_manager.save_updates()
 
         # Changed files
         if db_file and not "deleted" in file_change:
             self._file_manager.remove_file(db_file)
             drive_item = OneDriveAccess.search_drive_item(id)
-            embeddings_id = SynchUtil.generate_file_embeddings(drive_item)
             self._file_manager.add_file(
-                SynchUtil.create_remote_file(drive_item, embeddings_id, OneDriveFile)
+                SynchUtil.create_remote_file(drive_item, OneDriveFile)
             )
+            SynchUtil.generate_file_embeddings(drive_item, OneDriveFile)
             self._file_manager.save_updates()
 
         # Deleted files
@@ -107,8 +107,7 @@ class SharePointSynchronizer:
             file_changes = SynchUtil.filter_document_files(delta_changes)
             for file_change in file_changes:
                 self._handle_file(file_change, site_id)
-
-        share_point_access.save_delta_link()
+            share_point_access.save_delta_link()
                 
     def _handle_file(self, file_change: dict, site_id):
         if not file_change:
@@ -122,20 +121,20 @@ class SharePointSynchronizer:
         # New files
         if db_file is None:
             drive_item = SharePointAccess.search_drive_item(site_id, file_id)
-            embeddings_id = SynchUtil.generate_file_embeddings(drive_item)
             self._file_manager.add_file(
-                SynchUtil.create_remote_file(drive_item, embeddings_id, SharePointFile, site_id=site_id)
+                SynchUtil.create_remote_file(drive_item, SharePointFile, site_id=site_id)
             )
+            SynchUtil.generate_file_embeddings(drive_item, SharePointFile, site_id)
             self._file_manager.save_updates()
 
         # Changed files
         if db_file and not "deleted" in file_change:
             self._file_manager.remove_file(db_file)
             drive_item = SharePointAccess.search_drive_item(site_id, file_id)
-            embeddings_id = SynchUtil.generate_file_embeddings(drive_item)
             self._file_manager.add_file(
-                SynchUtil.create_remote_file(drive_item, embeddings_id, SharePointFile, site_id=site_id)
+                SynchUtil.create_remote_file(drive_item, SharePointFile, site_id=site_id)
             )
+            SynchUtil.generate_file_embeddings(drive_item, SharePointFile)
             self._file_manager.save_updates()
 
         # Deleted files
@@ -153,13 +152,12 @@ class SynchUtil:
         return documents_only
     
     @staticmethod
-    def create_remote_file(drive_item: dict, embeddings_id: int, file_class, **extra_fields):
+    def create_remote_file(drive_item: dict, file_class: type, **extra_fields):
         """
         Creates an instance of a remote file object based on the provided data.
 
         Args:
             drive_item (dict): Metadata of the remote file retrieved from the drive.
-            embeddings_id (int): Identifier for the generated embeddings associated with the file.
             file_class (type): The class representing the file type (e.g., OneDriveFile or SharePointFile).
             **extra_fields: Additional fields required for specific file types (e.g., site_id for SharePointFile).
 
@@ -181,7 +179,6 @@ class SynchUtil:
             "name": name,
             "path": path,
             "url": url,
-            "embeddings_id": embeddings_id,
         }
 
         # Zusätzliche Felder nur hinzufügen, wenn sie gebraucht werden
@@ -189,19 +186,23 @@ class SynchUtil:
         return file_class(**file_data)
 
     @staticmethod
-    def generate_file_embeddings(drive_item: dict) -> int:
-        SynchUtil.download_file(drive_item)
+    def generate_file_embeddings(drive_item: dict, file_type: type, site_id=None) -> int:
+        file_path = SynchUtil.download_file(drive_item)
+        embedding_generator = ServiceLocator.get_service("embedding_generator")
+        embedding_generator.generate_and_store_embeddings(file_path, file_type, drive_item["id"], site_id)
         #TODO Embeddings generieren
         return None
 
     @staticmethod
-    def download_file(file_item: str):
+    def download_file(file_item: str) -> str:
         """
-        Downloads a file from OneDrive using the given metadata and saves it locally.
+        Downloads a file from OneDrive or SharePoint using the given metadata and saves it locally.
 
         Args:
             file_item: A dictionary containing metadata of the file, including its `@microsoft.graph.downloadUrl` URL.
             save_dir: The directory where the file will be saved.
+
+        Returns: the path of the downloaded file
         """
         dir_manager = ServiceLocator.get_service("dir_manager")
         save_dir = dir_manager.get_tmp_dir()
@@ -215,6 +216,7 @@ class SynchUtil:
             response.raise_for_status()
             with open(file_path, mode="wb") as file:
                 file.write(response.content)
+            return file_path
         except Exception as e:
             print(f"Failed to download file {file_item['name']}: {e}")
             if os.path.exists(file_path):
