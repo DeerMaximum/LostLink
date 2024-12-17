@@ -2,13 +2,13 @@ import os
 
 from langchain_community.embeddings import LlamaCppEmbeddings
 
-from ai.embedding_generator import EmbeddingGenerator
 import args
 from langchain_chroma import Chroma
 
 from lost_link.db.delta_link_manager import DeltaLinkManager
 from lost_link.db.one_drive_file_manager import OneDriveFileManager
 from lost_link.db.share_point_file_manager import SharePointFileManager
+from lost_link.ai.embedding_generator import EmbeddingGenerator
 from lost_link.ai.file_to_document import FileToDocumentConverter
 from lost_link.ai.models import ModelManager
 from lost_link.const import ALLOWED_EXTENSIONS

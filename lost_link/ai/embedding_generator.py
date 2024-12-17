@@ -1,4 +1,4 @@
-from db.db_models import Embedding, LocalFile, OneDriveFile, SharePointFile
+from lost_link.db.db_models import Embedding, LocalFile, OneDriveFile, SharePointFile
 
 class EmbeddingGenerator:
     def __init__(self, vector_db, embedding_manager, file_converter):
