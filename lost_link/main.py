@@ -5,6 +5,10 @@ from langchain_community.embeddings import LlamaCppEmbeddings
 import args
 from langchain_chroma import Chroma
 
+from lost_link.db.delta_link_manager import DeltaLinkManager
+from lost_link.db.one_drive_file_manager import OneDriveFileManager
+from lost_link.db.share_point_file_manager import SharePointFileManager
+from lost_link.ai.embedding_generator import EmbeddingGenerator
 from lost_link.ai.file_to_document import FileToDocumentConverter
 from lost_link.ai.models import ModelManager
 from lost_link.const import ALLOWED_EXTENSIONS
@@ -16,6 +20,9 @@ from lost_link.settings import Settings
 from lost_link.sources.dir_scanner import DirScanner
 from lost_link.sources.dir_watcher import DirWatcher
 from lost_link.sources.local_file_processor import LocalFileProcessor
+from lost_link.remote.remote_file_synchronizer import RemoteFileSynchronizer
+from lost_link.remote.graph_api_authentication import GraphAPIAuthentication
+from lost_link.service_locator import ServiceLocator
 
 
 def main():
@@ -25,12 +32,22 @@ def main():
 
     dir_manager = DirManager("../workdir")
     dir_manager.create_workspace()
+    ServiceLocator.register_service("dir_manager", dir_manager)
 
     settings = Settings(dir_manager.get_settings_path())
 
     db = DB(dir_manager.get_db_path(), debug=run_debug)
     local_file_manager = LocalFileManager(db)
     embeddings_manager = EmbeddingManager(db)
+
+    one_drive_file_manager = OneDriveFileManager(db)
+    share_point_file_manager = SharePointFileManager(db)
+    delta_link_manager = DeltaLinkManager(db)
+
+    graph_api_authentication = GraphAPIAuthentication(dir_manager,settings)
+    ServiceLocator.register_service("auth", graph_api_authentication)
+
+    
 
     if arguments.background:
         local_paths = settings.get(settings.KEY_LOCAL_PATHS, [])
@@ -59,11 +76,15 @@ def main():
 
     vector_db = Chroma(persist_directory=dir_manager.get_vector_db_dir(), embedding_function=embeddings_model)
     file_converter = FileToDocumentConverter()
+    embedding_generator = EmbeddingGenerator(vector_db, embeddings_manager, file_converter)
+    ServiceLocator.register_service("embedding_generator", embedding_generator)
 
     local_file_processor = LocalFileProcessor(local_file_manager, embeddings_manager,file_converter, vector_db)
+    remote_file_synchronizer = RemoteFileSynchronizer(one_drive_file_manager, share_point_file_manager, delta_link_manager)
 
     print("Update embeddings")
-    local_file_processor.process_changes()
+    # local_file_processor.process_changes()
+    remote_file_synchronizer.update_remote_files()
 
 
 if __name__ == "__main__":

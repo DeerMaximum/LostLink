@@ -3,7 +3,6 @@ test-data/*.txt
 test-data/*.pdf
 
 .idea
-test.db
 workdir
 *.pdf
 *gguf
