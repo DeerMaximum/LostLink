@@ -4,11 +4,12 @@ import uuid
 
 from langchain_chroma import Chroma
 
-from lost_link.ai.file_to_document import FileToDocumentConverter
+from lost_link.ai.embedding_generator import EmbeddingGenerator
 from lost_link.db.attachment_manager import AttachmentManager
-from lost_link.db.db_models import Attachment, Embedding
+from lost_link.db.db_models import Attachment
 from lost_link.db.embedding_manager import EmbeddingManager
 from lost_link.remote.graph_api_access import OutlookAccess
+from lost_link.service_locator import ServiceLocator
 from lost_link.settings import Settings
 from lost_link.const import ALLOWED_EXTENSIONS
 
@@ -16,14 +17,14 @@ from lost_link.const import ALLOWED_EXTENSIONS
 class Outlook:
 
     def __init__(self, api: OutlookAccess, attachment_manager: AttachmentManager, embedding_manager: EmbeddingManager,
-                 file_converter: FileToDocumentConverter ,vector_db: Chroma , tmp_base_path: str, settings: Settings):
+                 vector_db: Chroma , tmp_base_path: str, settings: Settings):
         self._api = api
         self._attachment_manager = attachment_manager
+        self._embedding_manager = embedding_manager
         self._tmp_base_path = tmp_base_path
         self._vector_db = vector_db
-        self._file_converter = file_converter
-        self._embedding_manager = embedding_manager
         self._settings = settings
+        self._embedding_generator: EmbeddingGenerator = ServiceLocator.get_service("embedding_generator")
 
 
     def _process_old_attachments(self, fetch_attachments: list[Attachment]):
@@ -66,17 +67,9 @@ class Outlook:
             path = os.path.join(self._tmp_base_path, filename)
             self._api.download_attachment(new_attachment.msg_id, new_attachment.id, path)
 
-            documents = self._file_converter.convert(path)
-            ids = self._vector_db.add_documents(documents)
-
-            for i in range(len(documents)):
-                self._embedding_manager.add_embedding(Embedding(
-                    id=ids[i],
-                    attachment_id=new_attachment.internet_id
-                ))
+            self._embedding_generator.generate_and_store_embeddings(path, Attachment, new_attachment.internet_id)
 
             os.remove(path)
-            self._embedding_manager.save_updates()
             self._attachment_manager.add_attachment(new_attachment)
             self._attachment_manager.save_updates()
 

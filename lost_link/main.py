@@ -77,18 +77,19 @@ def main():
         verbose=run_debug
     )
 
+    print("Update embeddings")
+
     vector_db = Chroma(persist_directory=dir_manager.get_vector_db_dir(), embedding_function=embeddings_model)
     file_converter = FileToDocumentConverter()
     embedding_generator = EmbeddingGenerator(vector_db, embeddings_manager, file_converter)
     ServiceLocator.register_service("embedding_generator", embedding_generator)
 
     o_acc = OutlookAccess()
-    outlook = Outlook(o_acc, attachment_manager, embeddings_manager, file_converter, vector_db, dir_manager.get_tmp_dir(), settings )
+    outlook = Outlook(o_acc, attachment_manager, embeddings_manager, vector_db, dir_manager.get_tmp_dir(), settings)
 
     local_file_processor = LocalFileProcessor(local_file_manager, embeddings_manager,file_converter, vector_db)
     remote_file_synchronizer = RemoteFileSynchronizer(one_drive_file_manager, share_point_file_manager, delta_link_manager)
 
-    print("Update embeddings")
     local_file_processor.process_changes()
     remote_file_synchronizer.update_remote_files()
     outlook.update()
