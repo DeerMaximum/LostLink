@@ -22,9 +22,9 @@ from lost_link.remote.graph_api_access import OutlookAccess, GraphAPIAccess
 from lost_link.remote.graph_api_authentication import GraphAPIAuthentication
 from lost_link.remote.outlook import Outlook
 from lost_link.settings import Settings
-from lost_link.sources.dir_scanner import DirScanner
-from lost_link.sources.dir_watcher import DirWatcher
-from lost_link.sources.local_file_processor import LocalFileProcessor
+from lost_link.local.dir_scanner import DirScanner
+from lost_link.local.dir_watcher import DirWatcher
+from lost_link.local.local_file_processor import LocalFileProcessor
 from lost_link.remote.remote_file_synchronizer import RemoteFileSynchronizer
 from lost_link.service_locator import ServiceLocator
 

@@ -1,8 +1,10 @@
 from langchain_chroma import Chroma
 
+from lost_link.ai.embedding_generator import EmbeddingGenerator
 from lost_link.ai.file_to_document import FileToDocumentConverter
-from lost_link.db.embedding_manager import EmbeddingManager, Embedding
+from lost_link.db.embedding_manager import EmbeddingManager
 from lost_link.db.local_file_manager import LocalFileManager, LocalFile
+from lost_link.service_locator import ServiceLocator
 
 
 class LocalFileProcessor:
@@ -13,19 +15,11 @@ class LocalFileProcessor:
         self._file_converter = file_converter
         self._embedding_manager = embedding_manager
         self._vector_db = vector_db
+        self._embedding_generator: EmbeddingGenerator = ServiceLocator.get_service("embedding_generator")
 
 
     def _process_new_file(self, file: LocalFile):
-        documents = self._file_converter.convert(file.path)
-        ids = self._vector_db.add_documents(documents)
-
-        for i in range(len(documents)):
-            self._embedding_manager.add_embedding(Embedding(
-                id = ids[i],
-                local_file_id=file.id
-            ))
-
-        self._embedding_manager.save_updates()
+        self._embedding_generator.generate_and_store_embeddings(file.path, LocalFile, file.id)
 
     def _process_deleted_file(self, file: LocalFile):
         ids_to_delete = [x.id for x in file.embeddings]
