@@ -97,7 +97,6 @@ class SharePointSynchronizer:
         """
         share_point_access = SharePointAccess(self._delta_link_manager)
         response = share_point_access.get_all_share_point_sites()
-        SynchUtil.pretty_print_json(response)
         site_ids = [site.get("id") for site in response.get("value", []) if "id" in site]
         for site_id in site_ids:
             delta_changes = share_point_access.get_delta_changes(site_id)
@@ -187,7 +186,8 @@ class SynchUtil:
         file_path = SynchUtil.download_file(drive_item)
         embedding_generator = ServiceLocator.get_service("embedding_generator")
         embedding_generator.generate_and_store_embeddings(file_path, file_type, drive_item["id"], site_id)
-        #TODO Embeddings generieren
+        if os.path.exists(file_path):
+            os.remove(file_path)
         return None
 
     @staticmethod
