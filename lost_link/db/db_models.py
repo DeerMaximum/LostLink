@@ -14,7 +14,7 @@ class Base(DeclarativeBase):
 class Embedding(Base):
     __tablename__ = 'embedding'
     __table_args__ = (CheckConstraint(
-        "local_file_id IS NOT NULL OR one_drive_file_id IS NOT NULL OR (share_point_file_id IS NOT NULL AND share_point_site_id IS NOT NULL)",
+        "local_file_id IS NOT NULL OR attachment_id IS NOT NULL OR one_drive_file_id IS NOT NULL OR (share_point_file_id IS NOT NULL AND share_point_site_id IS NOT NULL)",
         name="not-null"
     ),)
 
@@ -29,7 +29,7 @@ class Embedding(Base):
         foreign_keys="[Embedding.share_point_file_id, Embedding.share_point_site_id]",
         back_populates="embeddings",
     )
-    # attachment_id: Mapped[str] = mapped_column(String(), ForeignKey("attachment.internet_id"), nullable=True)
+    attachment_id: Mapped[str] = mapped_column(String(), ForeignKey("attachment.internet_id"), nullable=True)
 
 class LocalFile(Base):
     __tablename__ = 'local_file'
@@ -61,7 +61,7 @@ class SharePointFile(Base):
     name: Mapped[str] = mapped_column(String(), nullable=True)
     path: Mapped[Optional[str]] = mapped_column(String(), nullable=True)
     url: Mapped[Optional[str]] = mapped_column(String(), nullable=True)
-    
+
     embeddings: Mapped[list["Embedding"]] = relationship(
         "Embedding",
         primaryjoin=(
@@ -80,3 +80,14 @@ class DeltaLink(Base):
     delta_link: Mapped[str] = mapped_column(String, nullable=False)
     last_updated: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
 
+
+
+class Attachment(Base):
+    __tablename__ = 'attachment'
+
+    internet_id: Mapped[str] = mapped_column(String(), primary_key=True)
+    id: Mapped[str] = mapped_column(String(), nullable=False)
+    name: Mapped[str] = mapped_column(String(), nullable=False)
+    msg_id: Mapped[str] = mapped_column(String(), nullable=False)
+
+    embeddings: Mapped[list[Embedding]] = relationship('Embedding', backref='attachment')

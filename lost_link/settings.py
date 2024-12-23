@@ -1,20 +1,23 @@
 import os
 import json
+from typing import Any
 
 
 class Settings:
     KEY_APP_ID = "APP_ID"
     KEY_LOCAL_PATHS = "LOCAL_PATHS"
+    KEY_TARGET_DAYS = "TARGET_DAYS"
 
-    _SETTINGS_TEMPLATE: dict[str, str] = {
+    _SETTINGS_TEMPLATE: dict[str, Any] = {
         KEY_APP_ID: "",
+        KEY_TARGET_DAYS: 90,
         KEY_LOCAL_PATHS: [
 
         ]
     }
 
     def __init__(self, path: str):
-        self._settings: dict[str, str] = self._SETTINGS_TEMPLATE
+        self._settings = self._SETTINGS_TEMPLATE
 
         settings_exists = os.path.exists(path)
 

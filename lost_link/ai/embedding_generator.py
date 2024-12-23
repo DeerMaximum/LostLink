@@ -1,4 +1,7 @@
-from lost_link.db.db_models import Embedding, LocalFile, OneDriveFile, SharePointFile
+from typing import Any
+
+from lost_link.db.db_models import Embedding, LocalFile, OneDriveFile, SharePointFile, Attachment
+
 
 class EmbeddingGenerator:
     def __init__(self, vector_db, embedding_manager, file_converter):
@@ -6,7 +9,7 @@ class EmbeddingGenerator:
         self._embedding_manager = embedding_manager
         self._file_converter = file_converter
 
-    def generate_and_store_embeddings(self, file_path: str, file_type: type, file_id, site_id=None):
+    def generate_and_store_embeddings(self, file_path: str, file_type: type, file_id: Any, site_id=None):
         """
         Generates embeddings for a given document and stores them in both the vector database and the relational database.
 
@@ -28,7 +31,8 @@ class EmbeddingGenerator:
 
         self._embedding_manager.save_updates()
 
-    def _create_db_embedding(self, embedding_id: str, file_type: type, file_id, site_id=None):
+    @staticmethod
+    def _create_db_embedding(embedding_id: str, file_type: type, file_id, site_id=None):
         """
         Creates an embedding object based on the type and ID of the source file.
 
@@ -46,8 +50,8 @@ class EmbeddingGenerator:
             return Embedding(id=embedding_id, one_drive_file_id=file_id)
         elif file_type == SharePointFile:
             return Embedding(id=embedding_id, share_point_file_id=file_id, share_point_site_id=site_id)
-        # elif file_type == Attachment:
-        #     return Embedding(id=embedding_id, attachment_id=file_id)
+        elif file_type == Attachment:
+            return Embedding(id=embedding_id, attachment_id=file_id)
         else:
             print(f"Unsupported file type: {file_type}")
             return None
