@@ -1,4 +1,3 @@
-import  datetime
 import os
 
 from langchain_community.embeddings import LlamaCppEmbeddings
@@ -6,6 +5,7 @@ from langchain_community.embeddings import LlamaCppEmbeddings
 import args
 from langchain_chroma import Chroma
 
+from lost_link.ai.cluster import Cluster
 from lost_link.db.delta_link_manager import DeltaLinkManager
 from lost_link.db.one_drive_file_manager import OneDriveFileManager
 from lost_link.db.share_point_file_manager import SharePointFileManager
@@ -27,7 +27,6 @@ from lost_link.local.dir_watcher import DirWatcher
 from lost_link.local.local_file_processor import LocalFileProcessor
 from lost_link.remote.remote_file_synchronizer import RemoteFileSynchronizer
 from lost_link.service_locator import ServiceLocator
-
 
 def main():
     parser = args.init_argparser()
@@ -99,6 +98,10 @@ def main():
     local_file_processor.process_changes()
     remote_file_synchronizer.update_remote_files()
     outlook.update()
+
+    print("Cluster data")
+    cluster = Cluster(vector_db)
+    cluster.create_cluster()
 
 
 if __name__ == "__main__":

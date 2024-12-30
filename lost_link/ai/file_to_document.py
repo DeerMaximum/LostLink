@@ -8,7 +8,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 class FileToDocumentConverter:
 
     def __init__(self):
-        self._splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+        self._splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=350)
 
     @staticmethod
     def _get_loader(path: str) -> BaseLoader | None:
@@ -31,5 +31,16 @@ class FileToDocumentConverter:
         if not loader:
             return []
 
-        loaded_docs = loader.load()
-        return self._splitter.split_documents(loaded_docs)
+        content = ""
+        last_metadata = {}
+
+        for page in loader.load():
+            content += page.page_content
+            content += "\n\n"
+            last_metadata = page.metadata
+
+        document = Document(content, metadata={
+            "source": last_metadata["source"],
+        })
+
+        return self._splitter.split_documents([document])

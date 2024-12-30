@@ -1,5 +1,6 @@
 import os.path
 from typing import Any
+from uuid import uuid4
 
 from lost_link.db.db_models import Embedding, LocalFile, OneDriveFile, SharePointFile, Attachment
 
@@ -26,7 +27,13 @@ class EmbeddingGenerator:
         if not documents:
             # Wenn Dokument komplett leer ist, gibt file_converter [] zurück, was bei _vector_db.add_documents dann zu exception führt
             return
-        ids = self._vector_db.add_documents(documents)
+
+        ids = [str(uuid4()) for _ in documents]
+
+        for i in range(len(documents)):
+            documents[i].metadata["id"] = ids[i]
+
+        self._vector_db.add_documents(documents, ids=ids)
 
         for i in range(len(documents)):
             embedding = self._create_db_embedding(ids[i], file_type, file_id, site_id)
@@ -59,6 +66,3 @@ class EmbeddingGenerator:
         else:
             print(f"Unsupported file type: {file_type}")
             return None
-
-
-
