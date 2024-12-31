@@ -77,6 +77,12 @@ def main():
         verbose=run_debug
     )
 
+    if local_file_manager.get_file_count() == 0:
+        print("Running first dir scan")
+        dir_scanner = DirScanner(local_file_manager)
+        for path in settings.get(settings.KEY_LOCAL_PATHS, []):
+            dir_scanner.fetch_changed_files(path, ALLOWED_EXTENSIONS)
+
     print("Update embeddings")
 
     vector_db = Chroma(persist_directory=dir_manager.get_vector_db_dir(), embedding_function=embeddings_model)

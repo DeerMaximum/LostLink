@@ -1,3 +1,4 @@
+import os.path
 from typing import Any
 
 from lost_link.db.db_models import Embedding, LocalFile, OneDriveFile, SharePointFile, Attachment
@@ -18,6 +19,9 @@ class EmbeddingGenerator:
             file_type (type): The class of the file type (e.g. LocalFile, OneDriveFile, Attachment, etc.).
             file_id: The ID of the file in the corresponding db table.
         """
+        if not os.path.exists(file_path):
+            return
+
         documents = self._file_converter.convert(file_path)
         if not documents:
             # Wenn Dokument komplett leer ist, gibt file_converter [] zurück, was bei _vector_db.add_documents dann zu exception führt
