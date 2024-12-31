@@ -2,6 +2,7 @@ import json
 import os
 import requests
 
+from const import ALLOWED_EXTENSIONS
 from lost_link.db.db_models import OneDriveFile, SharePointFile
 from lost_link.db.delta_link_manager import DeltaLinkManager
 from lost_link.db.one_drive_file_manager import OneDriveFileManager
@@ -59,21 +60,23 @@ class OneDriveSynchronizer:
         # New files
         if db_file is None:
             drive_item = OneDriveAccess.search_drive_item(id)
-            self._file_manager.add_file(
-                SynchUtil.create_remote_file(drive_item, OneDriveFile)
-            )
-            SynchUtil.generate_file_embeddings(drive_item, OneDriveFile)
-            self._file_manager.save_updates()
+            if SynchUtil.is_extension_allowed(drive_item):
+                self._file_manager.add_file(
+                    SynchUtil.create_remote_file(drive_item, OneDriveFile)
+                )
+                SynchUtil.generate_file_embeddings(drive_item, OneDriveFile)
+                self._file_manager.save_updates()
 
         # Changed files
         if db_file and not "deleted" in file_change:
             self._file_manager.remove_file(db_file)
             drive_item = OneDriveAccess.search_drive_item(id)
-            self._file_manager.add_file(
-                SynchUtil.create_remote_file(drive_item, OneDriveFile)
-            )
-            SynchUtil.generate_file_embeddings(drive_item, OneDriveFile)
-            self._file_manager.save_updates()
+            if SynchUtil.is_extension_allowed(drive_item):
+                self._file_manager.add_file(
+                    SynchUtil.create_remote_file(drive_item, OneDriveFile)
+                )
+                SynchUtil.generate_file_embeddings(drive_item, OneDriveFile)
+                self._file_manager.save_updates()
 
         # Deleted files
         if db_file and "deleted" in file_change:
@@ -97,7 +100,6 @@ class SharePointSynchronizer:
         """
         share_point_access = SharePointAccess(self._delta_link_manager)
         response = share_point_access.get_all_share_point_sites()
-        SynchUtil.pretty_print_json(response)
         site_ids = [site.get("id") for site in response.get("value", []) if "id" in site]
         for site_id in site_ids:
             delta_changes = share_point_access.get_delta_changes(site_id)
@@ -118,21 +120,23 @@ class SharePointSynchronizer:
         # New files
         if db_file is None:
             drive_item = SharePointAccess.search_drive_item(site_id, file_id)
-            self._file_manager.add_file(
-                SynchUtil.create_remote_file(drive_item, SharePointFile, site_id=site_id)
-            )
-            SynchUtil.generate_file_embeddings(drive_item, SharePointFile, site_id)
-            self._file_manager.save_updates()
+            if SynchUtil.is_extension_allowed(drive_item):
+                self._file_manager.add_file(
+                    SynchUtil.create_remote_file(drive_item, SharePointFile, site_id=site_id)
+                )
+                SynchUtil.generate_file_embeddings(drive_item, SharePointFile, site_id)
+                self._file_manager.save_updates()
 
         # Changed files
         if db_file and not "deleted" in file_change:
             self._file_manager.remove_file(db_file)
             drive_item = SharePointAccess.search_drive_item(site_id, file_id)
-            self._file_manager.add_file(
-                SynchUtil.create_remote_file(drive_item, SharePointFile, site_id=site_id)
-            )
-            SynchUtil.generate_file_embeddings(drive_item, SharePointFile)
-            self._file_manager.save_updates()
+            if SynchUtil.is_extension_allowed(drive_item):
+                self._file_manager.add_file(
+                    SynchUtil.create_remote_file(drive_item, SharePointFile, site_id=site_id)
+                )
+                SynchUtil.generate_file_embeddings(drive_item, SharePointFile)
+                self._file_manager.save_updates()
 
         # Deleted files
         if db_file and "deleted" in file_change:
@@ -142,6 +146,12 @@ class SharePointSynchronizer:
     
 
 class SynchUtil:
+
+    @staticmethod
+    def is_extension_allowed(file_item: dict):
+        extension = os.path.splitext(file_item['name'])[1]
+        return extension in ALLOWED_EXTENSIONS
+
     @staticmethod
     def filter_document_files(delta_changes: dict) -> dict:
         """ Filters out folders and keeps only document files from the delta response. """
@@ -187,7 +197,8 @@ class SynchUtil:
         file_path = SynchUtil.download_file(drive_item)
         embedding_generator = ServiceLocator.get_service("embedding_generator")
         embedding_generator.generate_and_store_embeddings(file_path, file_type, drive_item["id"], site_id)
-        #TODO Embeddings generieren
+        if os.path.exists(file_path):
+            os.remove(file_path)
         return None
 
     @staticmethod
