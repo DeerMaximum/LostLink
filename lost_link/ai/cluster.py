@@ -55,5 +55,5 @@ class Cluster:
 
         return max(vector_results.items(), key=operator.itemgetter(1))[0]
 
-    def get_embeddings_ids_for_cluster_id(self, cluster_id: int) -> list[str]:
-        return self.cluster_data.loc[self.cluster_data['cluster'] == cluster_id, "id"].to_list()
+    def get_file_ids_for_cluster(self, cluster_id: int) -> list[str]:
+        return self.cluster_data.loc[self.cluster_data['cluster'] == cluster_id, "source"].unique().tolist()

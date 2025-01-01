@@ -32,6 +32,7 @@ class EmbeddingGenerator:
 
         for i in range(len(documents)):
             documents[i].metadata["id"] = ids[i]
+            documents[i].metadata["source"] = f"{file_id}?{site_id}"
 
         self._vector_db.add_documents(documents, ids=ids)
 
