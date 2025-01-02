@@ -4,6 +4,8 @@ import warnings
 
 import art
 import questionary
+import webbrowser
+from questionary import Choice
 from halo import Halo
 from langchain_chroma import Chroma
 from langchain_community.embeddings import LlamaCppEmbeddings
@@ -29,9 +31,9 @@ from lost_link.remote.graph_api_access import OutlookAccess
 from lost_link.remote.graph_api_authentication import GraphAPIAuthentication
 from lost_link.remote.outlook import Outlook
 from lost_link.remote.remote_file_synchronizer import RemoteFileSynchronizer
+from lost_link.result import ResultEntry
 from lost_link.service_locator import ServiceLocator
 from lost_link.settings import Settings
-
 
 class LostLink:
 
@@ -147,9 +149,40 @@ class LostLink:
             self._spinner.succeed()
             return search_embeddings
 
+    def prepare_results(self, cluster_id: int) -> list[ResultEntry]:
+        file_ids = self._cluster.get_file_ids_for_cluster(cluster_id)
+        #TODO: File IDs to result
+        return []
+
+    @staticmethod
+    def _print_results(results: list[ResultEntry]):
+        choices: list[Choice] = []
+
+        for result in sorted(results):
+            choices.append(
+                Choice(title=f"{result.filename} - {result.last_modified.strftime('%x %X')} - {result.source}", value=result.open_url)
+            )
+
+        choices.append(
+            Choice(title="Beenden", value="exit")
+        )
+
+        while True:
+            url_to_open = questionary.select("Welche Datei möchtest du öffnen?",choices=choices, instruction="(Pfeiltasten verwenden)").ask()
+            if url_to_open == "exit":
+                return
+
+            webbrowser.open(url_to_open)
+
+
     def main(self):
         if self._args.background:
             return self._background_job()
+
+        # Test output
+        #self._print_results(
+        #    [ResultEntry(filename="test.txt", source="local", open_url="file://", last_modified=datetime.now()), ResultEntry(filename="test2.txt", source="local", open_url="https://google.de", last_modified=datetime.fromtimestamp(1735736880.0))])
+        #return
 
         art.tprint("File History AI")
 
@@ -178,8 +211,11 @@ class LostLink:
         target_cluster = self._cluster.get_nearest_cluster_for_vectors(search_embeddings)
         self._spinner.succeed()
 
-        print(f"Cluster: {target_cluster}")
+        self._spinner.start("Ergebnisse erstellen")
+        results = self.prepare_results(target_cluster)
+        self._spinner.succeed()
 
+        self._print_results(results)
 
 if __name__ == "__main__":
     app = LostLink()
