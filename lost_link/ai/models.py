@@ -29,8 +29,15 @@ class ModelManager:
         for filename, dl_link in self.ALL_MODELS:
             target_path = os.path.join(self._model_paths, filename)
             if not os.path.exists(target_path):
-                print(f"Download {filename} from {dl_link}")
+                print(f"Lade {filename} von {dl_link} herunter")
                 self._download_file(dl_link, target_path)
+
+    def need_init(self) -> bool:
+        for filename, dl_link in self.ALL_MODELS:
+            target_path = os.path.join(self._model_paths, filename)
+            if not os.path.exists(target_path):
+                return True
+        return False
 
     def get_embedding_model_filename(self):
         return self.EMBEDDING_MODEL[0]

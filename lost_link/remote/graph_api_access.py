@@ -20,7 +20,7 @@ class GraphAPIAccess:
     @staticmethod
     def raw_request(request_url: str) -> Response:
         graph_api_authentication = ServiceLocator.get_service("auth")
-        headers = graph_api_authentication.get_access_token_header(['Files.Read', 'Sites.Read.All'])
+        headers = graph_api_authentication.get_access_token_header()
         headers["Prefer"] = "deltaExcludeParent"
         return requests.get(request_url, headers=headers)
 
