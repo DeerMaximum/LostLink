@@ -5,6 +5,8 @@ from langchain_community.embeddings import LlamaCppEmbeddings
 import args
 from langchain_chroma import Chroma
 
+import questionary
+
 from lost_link.ai.cluster import Cluster
 from lost_link.db.delta_link_manager import DeltaLinkManager
 from lost_link.db.one_drive_file_manager import OneDriveFileManager
@@ -27,6 +29,14 @@ from lost_link.local.dir_watcher import DirWatcher
 from lost_link.local.local_file_processor import LocalFileProcessor
 from lost_link.remote.remote_file_synchronizer import RemoteFileSynchronizer
 from lost_link.service_locator import ServiceLocator
+
+def validate_path(path: str) -> bool:
+    return os.path.exists(path) and not os.path.isdir(path) and os.path.splitext(path)[1] in ALLOWED_EXTENSIONS
+
+def filter_file_completion(path) -> bool:
+    if os.path.isdir(path):
+        return True
+    return os.path.splitext(path)[1] in ALLOWED_EXTENSIONS
 
 def main():
     parser = args.init_argparser()
@@ -96,13 +106,33 @@ def main():
     remote_file_synchronizer = RemoteFileSynchronizer(one_drive_file_manager, share_point_file_manager, delta_link_manager)
 
     local_file_processor.process_changes()
-    remote_file_synchronizer.update_remote_files()
-    outlook.update()
+    #remote_file_synchronizer.update_remote_files()
+    #outlook.update()
 
     print("Cluster data")
     cluster = Cluster(vector_db)
     cluster.create_cluster()
 
+    search_type = questionary.select("Wie möchtest du suchen?",
+                                     choices=["Suchbegriff", "Datei"],
+                                     instruction="(Pfeiltasten verwenden)"
+                                     ).ask()
+    if search_type == "Suchbegriff":
+        #Suchbegriff
+        search_term = questionary.text("Suchbegriff:").ask()
+        search_embedding = embeddings_model.embed_query(f"Search for: {search_term}")
+        target_cluster_id = cluster.get_nearest_cluster_for_vectors([search_embedding])
+    else:
+        #File
+        path = (questionary.path("Dateipfad:",
+                                validate=lambda text: validate_path(text),
+                                file_filter=lambda text: filter_file_completion(text)
+                                 ).ask())
+        content = [x.page_content for x in file_converter.convert(path)]
+        file_embedding = embeddings_model.embed_documents(content)
+        target_cluster_id = cluster.get_nearest_cluster_for_vectors(file_embedding)
+
+    print(f"Cluster: {target_cluster_id}")
 
 if __name__ == "__main__":
     main()
