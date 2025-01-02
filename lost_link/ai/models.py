@@ -16,7 +16,7 @@ class ModelManager:
         response.raise_for_status()
         total_size = int(response.headers.get("content-length", 0))
         block_size = 4096
-        with tqdm(total=total_size, unit="B", unit_scale=True) as progress_bar:
+        with tqdm(total=total_size, unit="B", unit_scale=True, leave=False) as progress_bar:
             with open(path, 'wb') as file:
                 for chunk in response.iter_content(chunk_size=block_size):
                     progress_bar.update(len(chunk))

@@ -18,3 +18,5 @@ pytz
 hdbscan
 pandas
 questionary
+halo
+art

@@ -6,6 +6,11 @@ import args
 from langchain_chroma import Chroma
 
 import questionary
+from halo import Halo
+import art
+import warnings
+import logging
+
 
 from lost_link.ai.cluster import Cluster
 from lost_link.db.delta_link_manager import DeltaLinkManager
@@ -39,6 +44,12 @@ def filter_file_completion(path) -> bool:
     return os.path.splitext(path)[1] in ALLOWED_EXTENSIONS
 
 def main():
+    warnings.filterwarnings("ignore")
+    logger = logging.getLogger("pypdf")
+    logger.setLevel(logging.ERROR)
+
+    spinner = Halo(spinner='dots')
+
     parser = args.init_argparser()
     arguments = parser.parse_args()
     run_debug = arguments.debug
@@ -64,10 +75,11 @@ def main():
     if arguments.background:
         local_paths = settings.get(settings.KEY_LOCAL_PATHS, [])
         if local_file_manager.get_file_count() == 0:
-            print("Running first dir scan")
+            spinner.start("Führe erstes Scannen der Verzeichnis durch")
             dir_scanner = DirScanner(local_file_manager)
             for path in local_paths:
                 dir_scanner.fetch_changed_files(path, ALLOWED_EXTENSIONS)
+            spinner.succeed()
 
         dir_watcher = DirWatcher(local_file_manager)
         dir_watcher.watch(local_paths, ALLOWED_EXTENSIONS)
@@ -75,9 +87,9 @@ def main():
 
     model_manager = ModelManager(dir_manager.get_model_dir())
 
-    print("Started File History AI:")
+    art.tprint("File History AI")
 
-    print("Prepare ai models")
+    spinner.start("KI Modelle vorbereiten")
     model_manager.init_models()
 
     embeddings_model = LlamaCppEmbeddings(
@@ -85,15 +97,16 @@ def main():
         n_gpu_layers=-1,  # Set to 0 for only cpu
         verbose=run_debug
     )
+    spinner.succeed()
 
     if local_file_manager.get_file_count() == 0:
-        print("Running first dir scan")
+        spinner.start("Führe erstes Scannen der Verzeichnis durch")
         dir_scanner = DirScanner(local_file_manager)
         for path in settings.get(settings.KEY_LOCAL_PATHS, []):
             dir_scanner.fetch_changed_files(path, ALLOWED_EXTENSIONS)
+        spinner.succeed()
 
-    print("Update embeddings")
-
+    spinner.start("Dateien aktualisieren und Embeddings generieren")
     vector_db = Chroma(persist_directory=dir_manager.get_vector_db_dir(), embedding_function=embeddings_model)
     file_converter = FileToDocumentConverter()
     embedding_generator = EmbeddingGenerator(vector_db, embeddings_manager, file_converter)
@@ -106,13 +119,16 @@ def main():
     remote_file_synchronizer = RemoteFileSynchronizer(one_drive_file_manager, share_point_file_manager, delta_link_manager)
 
     local_file_processor.process_changes()
-    #remote_file_synchronizer.update_remote_files()
-    #outlook.update()
+    remote_file_synchronizer.update_remote_files()
+    outlook.update()
+    spinner.succeed()
 
-    print("Cluster data")
+    spinner.start("Daten clustern")
     cluster = Cluster(vector_db)
     cluster.create_cluster()
+    spinner.succeed()
 
+    search_embeddings: list[list[float]] = []
     search_type = questionary.select("Wie möchtest du suchen?",
                                      choices=["Suchbegriff", "Datei"],
                                      instruction="(Pfeiltasten verwenden)"
@@ -120,8 +136,7 @@ def main():
     if search_type == "Suchbegriff":
         #Suchbegriff
         search_term = questionary.text("Suchbegriff:").ask()
-        search_embedding = embeddings_model.embed_query(f"Search for: {search_term}")
-        target_cluster_id = cluster.get_nearest_cluster_for_vectors([search_embedding])
+        search_embeddings = [embeddings_model.embed_query(f"Search for: {search_term}")]
     else:
         #File
         path = (questionary.path("Dateipfad:",
@@ -129,9 +144,13 @@ def main():
                                 file_filter=lambda text: filter_file_completion(text)
                                  ).ask())
         content = [x.page_content for x in file_converter.convert(path)]
-        file_embedding = embeddings_model.embed_documents(content)
-        target_cluster_id = cluster.get_nearest_cluster_for_vectors(file_embedding)
+        spinner.start("Datei verarbeiten")
+        search_embeddings = embeddings_model.embed_documents(content)
+        spinner.succeed()
 
+    spinner.start("Cluster finden")
+    target_cluster_id = cluster.get_nearest_cluster_for_vectors(search_embeddings)
+    spinner.succeed()
     print(f"Cluster: {target_cluster_id}")
 
 if __name__ == "__main__":
