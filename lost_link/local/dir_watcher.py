@@ -38,6 +38,10 @@ class DirWatcher:
 
     def _handle_add(self, event: tuple[Change, str]):
         path = event[1]
+        if not os.path.exists(path):
+            # Path of new file should exist, otherwise don't add to DB
+            # (also handles simultaneous add and delete event of temporary files)
+            return
         change_time = self._get_last_modification_date(path)
         local_file = self._file_manager.get_file_by_path(path)
 
