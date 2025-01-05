@@ -22,29 +22,8 @@
     > Beachte die Installation dauert sehr lange (ca. 30min)
 
     ``pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu``
-    
 
-## Modelle
+## Zu .exe konvertieren
 
-> [!CAUTION]
-> Wenn von einem Ollama Notebook zu einem lokalen gewechselt wird. Vorher die Ollama-Modelle aus dem RAM laden. Sonst kann es zu abstürzen führen!<br>
-> ``ollama stop llama3.2:latest`` <br>
-> ``ollama stop mxbai-embed-large:latest``
-
-### Ollama
-
-Falls du Ollama für die Modelle benutzt musst du sie vorher einmal herunterladen. Führe dafür folgende Befehle aus:
-
-``ollama pull llama3.2:latest`` <br>
-``ollama pull mxbai-embed-large:latest``
-
-### Lokale Modelle
-
-Wenn du die lokalen Modelle ohne Ollama-Server benutzen möchtest, musst du sie vorher einmal herunterlanden und in den `models` Ordner legen.
-
-* [Llama3.2-3b](https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q6_K_L.gguf?download=true)
-* [mxbai-embed-large](https://huggingface.co/ChristianAzinn/mxbai-embed-large-v1-gguf/resolve/main/mxbai-embed-large-v1.Q8_0.gguf?download=true)
-
-## Testdaten
-
-Alle PDF- und Textdateien im Unterordner test-data werden verwendet.
+Führe diesen Befehl im venv aus: ``pyinstaller .\LostLink.spec`` <br>
+Die fertige Exe wird dann im ``dist`` Ordner liegen
