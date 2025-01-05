@@ -9,9 +9,6 @@ class SharePointFileManager():
         self._db = db
         self._session = self._db.create_session()
 
-    def __del__(self):
-        self._session.close()
-
     def get_file_by_id(self, site_id, file_id) -> SharePointFile | None:
         stmt = (
             select(SharePointFile)

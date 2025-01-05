@@ -9,9 +9,6 @@ class OneDriveFileManager():
         self._db = db
         self._session = self._db.create_session()
 
-    def __del__(self):
-        self._session.close()
-
     def get_file_by_id(self, id) -> OneDriveFile | None:
         stmt = select(OneDriveFile).where(OneDriveFile.id == id)
         return self._session.scalar(stmt)
