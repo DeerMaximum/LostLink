@@ -31,7 +31,7 @@ from lost_link.remote.graph_api_access import OutlookAccess
 from lost_link.remote.graph_api_authentication import GraphAPIAuthentication
 from lost_link.remote.outlook import Outlook
 from lost_link.remote.remote_file_synchronizer import RemoteFileSynchronizer
-from lost_link.result import ResultEntry
+from lost_link.result import ResultEntry, ResultMapper
 from lost_link.service_locator import ServiceLocator
 from lost_link.settings import Settings
 
@@ -150,9 +150,8 @@ class LostLink:
             return search_embeddings
 
     def prepare_results(self, cluster_id: int) -> list[ResultEntry]:
-        file_ids = self._cluster.get_file_ids_for_cluster(cluster_id)
-        #TODO: File IDs to result
-        return []
+        mapper = ResultMapper(self._local_file_manager, self._attachment_manager, self._one_drive_file_manager, self._share_point_file_manager)
+        return mapper.map(self._cluster.get_file_ids_for_cluster(cluster_id))
 
     @staticmethod
     def _print_results(results: list[ResultEntry]):
@@ -178,11 +177,6 @@ class LostLink:
     def main(self):
         if self._args.background:
             return self._background_job()
-
-        # Test output
-        #self._print_results(
-        #    [ResultEntry(filename="test.txt", source="local", open_url="file://", last_modified=datetime.now()), ResultEntry(filename="test2.txt", source="local", open_url="https://google.de", last_modified=datetime.fromtimestamp(1735736880.0))])
-        #return
 
         art.tprint("File History AI")
 
