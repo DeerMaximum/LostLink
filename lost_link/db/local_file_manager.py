@@ -1,5 +1,7 @@
 from datetime import datetime
 from typing import  Sequence
+from uuid import uuid4, UUID
+
 from sqlalchemy import select
 
 from lost_link.db.db import DB
@@ -23,6 +25,13 @@ class LocalFileManager:
 
     def get_file_count(self) -> int:
         return self._session.query(LocalFile).count()
+
+    def get_file_by_id(self, file_id: str) -> LocalFile | None:
+        try:
+            stmt = select(LocalFile).where(LocalFile.id == UUID(file_id))
+            return self._session.scalar(stmt)
+        except ValueError:
+            return None
 
     def get_all_files_seen_before(self, date: datetime) -> Sequence[LocalFile]:
         stmt = select(LocalFile).where(LocalFile.last_seen < date)

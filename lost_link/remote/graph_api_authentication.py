@@ -4,6 +4,7 @@ import os
 import webbrowser
 import msal
 
+from lost_link.const import API_SCOPE
 from lost_link.dir_manager import DirManager
 from lost_link.settings import Settings
 
@@ -19,7 +20,7 @@ class GraphAPIAuthentication:
         self.application_id = settings.get(Settings.KEY_APP_ID)
         self.token_path = dir_manager.get_auth_token_path()
 
-    def get_access_token_header(self, permission_scopes: list[str]) -> dict[str, str]:
+    def get_access_token_header(self) -> dict[str, str]:
         """
         Generates an HTTP header for authenticating requests to Microsoft Graph API using a valid access token.
 
@@ -29,13 +30,23 @@ class GraphAPIAuthentication:
         Returns:
             dict[str, str]: HTTP-Header {'Authorization': 'Bearer <Access Token>'}
         """
-        token_response = self.get_access_token(permission_scopes)
+        token_response = self.get_access_token()
         access_token = token_response['access_token']
         headers = {'Authorization': 'Bearer ' + access_token}
         return headers
-    
 
-    def get_access_token(self, permission_scopes: list[str]) -> dict:
+    def login_if_needed(self):
+        token_cache = self._get_serialized_token_cache(API_SCOPE)
+        client = msal.PublicClientApplication(client_id=self.application_id, token_cache=token_cache)
+
+        accounts = client.get_accounts()
+
+        if not accounts:
+            print("Login erforderlich, bitte den Anweisungen folgen:")
+            self._generate_new_access_token(client=client, permission_scopes=API_SCOPE)
+
+
+    def get_access_token(self) -> dict:
         """
         Retrieves an access token for the specified permission scopes. 
         Uses the cached token if available and valid; otherwise, generates a new token via the MSAL device code flow. 
@@ -46,15 +57,15 @@ class GraphAPIAuthentication:
         Returns:
             dict: A dictionary containing the token response, including the access_token
         """
-        token_cache = self._get_serialized_token_cache(permission_scopes)
+        token_cache = self._get_serialized_token_cache(API_SCOPE)
         client = msal.PublicClientApplication(client_id=self.application_id, token_cache=token_cache)
 
         accounts = client.get_accounts()
 
         if accounts:
-            token_response = client.acquire_token_silent(permission_scopes, accounts[0])
+            token_response = client.acquire_token_silent(API_SCOPE, accounts[0])
         else:
-            token_response = self._generate_new_access_token(client=client, permission_scopes=permission_scopes)
+            token_response = self._generate_new_access_token(client=client, permission_scopes=API_SCOPE)
 
         return token_response
     

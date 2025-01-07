@@ -88,6 +88,9 @@ class Attachment(Base):
     internet_id: Mapped[str] = mapped_column(String(), primary_key=True)
     id: Mapped[str] = mapped_column(String(), nullable=False)
     name: Mapped[str] = mapped_column(String(), nullable=False)
+    subject: Mapped[str] = mapped_column(String(), nullable=False)
     msg_id: Mapped[str] = mapped_column(String(), nullable=False)
+    created: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
+    link: Mapped[str] = mapped_column(String(), nullable=False)
 
     embeddings: Mapped[list[Embedding]] = relationship('Embedding', backref='attachment')
