@@ -48,11 +48,21 @@ class ResultMapper:
 
     @staticmethod
     def _map_onedrive(file: OneDriveFile) -> ResultEntry:
-        pass
+        return ResultEntry(
+            filename=file.name,
+            last_modified=datetime.now(),
+            source=f"OneDrive: [{file.path}]",
+            open_url=file.url
+        )
 
     @staticmethod
     def _map_share_point(file: SharePointFile) -> ResultEntry:
-        pass
+        return ResultEntry(
+            filename=file.name,
+            last_modified=datetime.now(),
+            source=f"SharePoint: [{file.path}]",
+            open_url=file.url
+        )
 
     def map(self, file_ids: list[str]) -> list[ResultEntry]:
         result = []
