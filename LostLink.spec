@@ -2,7 +2,7 @@
 import site
 
 a = Analysis(
-    ['lost_link\\main.py'],
+    ['main.py'],
     pathex=['lost_link'],
     binaries=[],
     datas=[],
