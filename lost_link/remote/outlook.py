@@ -39,12 +39,7 @@ class Outlook:
                     break
 
             if not in_list:
-                ids_to_delete = [x.id for x in old_attachment.embeddings]
-                self._vector_db.delete(ids_to_delete)
-
-                for embedding in old_attachment.embeddings:
-                    self._embedding_manager.remove_embedding(embedding)
-                self._embedding_manager.save_updates()
+                self._embedding_generator.delete_file_embeddings(old_attachment)
                 self._attachment_manager.remove_attachment(old_attachment)
                 self._attachment_manager.save_updates()
 
