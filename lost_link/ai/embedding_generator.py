@@ -59,6 +59,16 @@ class EmbeddingGenerator:
         else:
             print(f"Unsupported file type: {file_type}")
             return None
+        
+    def delete_file_embeddings(self, file):
+        ids_to_delete = [x.id for x in file.embeddings]
+        if len(ids_to_delete) > 0:
+            self._vector_db.delete(ids_to_delete)
+
+        for embedding in file.embeddings:
+            self._embedding_manager.remove_embedding(embedding)
+
+        self._embedding_manager.save_updates()
 
 
 
