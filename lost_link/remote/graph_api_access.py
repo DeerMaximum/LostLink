@@ -20,7 +20,7 @@ class GraphAPIAccess:
     @staticmethod
     def raw_request(request_url: str) -> Response:
         graph_api_authentication = ServiceLocator.get_service("auth")
-        headers = graph_api_authentication.get_access_token_header(['Files.Read', 'Sites.Read.All'])
+        headers = graph_api_authentication.get_access_token_header()
         headers["Prefer"] = "deltaExcludeParent"
         return requests.get(request_url, headers=headers)
 
@@ -37,14 +37,13 @@ class OutlookAccess:
 
         filter_query = " and ".join(filters)
 
-        return f"{base_url}?$select=internetMessageId,id&$filter={filter_query}"
+        return f"{base_url}?$select=internetMessageId,id,createdDateTime,subject,webLink&$filter={filter_query}"
 
-    def get_message_ids(self, start_date: datetime) -> list[tuple[str, str]]:
+    def get_message_ids(self, start_date: datetime) -> list[tuple[str, str, str, str, datetime]]:
         url = self._build_fetch_url(self.BASE_URL, start_date)
 
         response = GraphAPIAccess.api_request(url)
-
-        return [(x["id"], x["internetMessageId"]) for x in response.get("value", [])]
+        return [(x["id"], x["internetMessageId"], x["subject"], x["webLink"], datetime.fromisoformat(x["createdDateTime"])) for x in response.get("value", [])]
 
     def get_message_ids_trash(self, start_date: datetime) -> list[str]:
         url = self._build_fetch_url(self.TRASH_URL, start_date)

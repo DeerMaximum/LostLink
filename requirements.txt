@@ -16,3 +16,8 @@ python-pptx==1.0.2
 llama-cpp-python==0.3.1
 pytz
 pyinstaller
+hdbscan
+pandas
+questionary
+halo
+art

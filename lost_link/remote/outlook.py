@@ -39,12 +39,7 @@ class Outlook:
                     break
 
             if not in_list:
-                ids_to_delete = [x.id for x in old_attachment.embeddings]
-                self._vector_db.delete(ids_to_delete)
-
-                for embedding in old_attachment.embeddings:
-                    self._embedding_manager.remove_embedding(embedding)
-                self._embedding_manager.save_updates()
+                self._embedding_generator.delete_file_embeddings(old_attachment)
                 self._attachment_manager.remove_attachment(old_attachment)
                 self._attachment_manager.save_updates()
 
@@ -88,12 +83,18 @@ class Outlook:
 
         attachments: list[Attachment] = []
 
-        for (msg_id, msg_internet_id) in msg_tuples:
+        for (msg_id, msg_internet_id, subject, web_link, created_date) in msg_tuples:
             attachment_tuples = self._api.get_attachments(msg_id)
 
             for attachment_tuple in attachment_tuples:
-                attachments.append(Attachment(id=attachment_tuple[0], name=attachment_tuple[1], msg_id=msg_id, internet_id=msg_internet_id))
-
+                attachments.append(Attachment(id=attachment_tuple[0],
+                                              name=attachment_tuple[1],
+                                              msg_id=msg_id,
+                                              internet_id=msg_internet_id,
+                                              created=created_date,
+                                              link=web_link,
+                                              subject=subject
+                                              ))
 
         self._process_old_attachments(attachments)
         self._process_new_attachments(self._get_new_attachments(attachments))

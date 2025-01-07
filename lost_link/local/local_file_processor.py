@@ -28,26 +28,12 @@ class LocalFileProcessor:
             file.deleted = False
             self._process_edited_file(file)
             return
-        ids_to_delete = [x.id for x in file.embeddings]
-        if len(ids_to_delete) > 0:
-            self._vector_db.delete(ids_to_delete)
-
-        for embedding in file.embeddings:
-            self._embedding_manager.remove_embedding(embedding)
-
-        self._embedding_manager.save_updates()
+        self._embedding_generator.delete_file_embeddings(file)
         self._file_manager.remove_file(file)
         self._file_manager.save_updates()
 
     def _process_edited_file(self, file: LocalFile):
-        ids_to_delete = [x.id for x in file.embeddings]
-        if len(ids_to_delete) > 0:
-            self._vector_db.delete(ids_to_delete)
-
-        for embedding in file.embeddings:
-            self._embedding_manager.remove_embedding(embedding)
-
-        self._embedding_manager.save_updates()
+        self._embedding_generator.delete_file_embeddings(file)
 
         file.edited = False
         self._file_manager.save_updates()
