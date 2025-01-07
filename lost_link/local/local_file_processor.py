@@ -1,3 +1,4 @@
+import os
 from langchain_chroma import Chroma
 
 from lost_link.ai.embedding_generator import EmbeddingGenerator
@@ -22,26 +23,17 @@ class LocalFileProcessor:
         self._embedding_generator.generate_and_store_embeddings(file.path, LocalFile, file.id)
 
     def _process_deleted_file(self, file: LocalFile):
-        ids_to_delete = [x.id for x in file.embeddings]
-        if len(ids_to_delete) > 0:
-            self._vector_db.delete(ids_to_delete)
-
-        for embedding in file.embeddings:
-            self._embedding_manager.remove_embedding(embedding)
-
-        self._embedding_manager.save_updates()
+        if os.path.exists(file.path):
+            # Datei existiert noch, wurde fälschlicherweise als deleted markiert, also als bearbeitet behandeln
+            file.deleted = False
+            self._process_edited_file(file)
+            return
+        self._embedding_generator.delete_file_embeddings(file)
         self._file_manager.remove_file(file)
         self._file_manager.save_updates()
 
     def _process_edited_file(self, file: LocalFile):
-        ids_to_delete = [x.id for x in file.embeddings]
-        if len(ids_to_delete) > 0:
-            self._vector_db.delete(ids_to_delete)
-
-        for embedding in file.embeddings:
-            self._embedding_manager.remove_embedding(embedding)
-
-        self._embedding_manager.save_updates()
+        self._embedding_generator.delete_file_embeddings(file)
 
         file.edited = False
         self._file_manager.save_updates()
@@ -50,8 +42,8 @@ class LocalFileProcessor:
         for file in self._file_manager.get_all_edited_files():
             self._process_edited_file(file)
 
-        for file in self._file_manager.get_all_new_files():
-            self._process_new_file(file)
-
         for file in self._file_manager.get_all_deleted_files():
             self._process_deleted_file(file)
+
+        for file in self._file_manager.get_all_new_files():
+            self._process_new_file(file)
