@@ -125,7 +125,7 @@ class LostLink:
         outlook.update()
 
     def _cluster_files(self):
-        self._cluster = Cluster(self._vector_db)
+        self._cluster = Cluster(self._vector_db, self._settings)
         self._cluster.create_cluster()
 
     def _get_search_embeddings(self) -> list[list[float]]:
