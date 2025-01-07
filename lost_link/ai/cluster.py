@@ -3,12 +3,15 @@ from langchain_chroma import Chroma
 import pandas as pd
 import operator
 
+from lost_link.settings import Settings
+
 
 class Cluster:
 
-    def __init__(self, vector_db: Chroma):
+    def __init__(self, vector_db: Chroma, settings: Settings):
         self._vector_db = vector_db
         self.cluster_data = pd.DataFrame()
+        self._settings = settings
 
     def _cleanup_cluster(self):
         for source in self.cluster_data["source"].unique():
@@ -35,7 +38,11 @@ class Cluster:
     def create_cluster(self):
         embedding_entries = self._vector_db.get(include=["metadatas", "embeddings"])
 
-        hdb = HDBSCAN(gen_min_span_tree=True, min_samples=3, min_cluster_size=2).fit(
+        hdbscan_settings = self._settings.get(Settings.GROUP_KEY_HDBSCAN, {})
+        min_samples = hdbscan_settings.get(Settings.KEY_HDBSCAN_MIN_SAMPLES, 3)
+        min_cluster_size = hdbscan_settings.get(Settings.KEY_HDBSCAN_MIN_CLUSTER_SIZE, 2)
+
+        hdb = HDBSCAN(gen_min_span_tree=True, min_samples=min_samples, min_cluster_size=min_cluster_size).fit(
             embedding_entries.get("embeddings", []))
 
         self.cluster_data["id"] = embedding_entries.get("ids", [])
