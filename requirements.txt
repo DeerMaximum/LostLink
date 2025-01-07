@@ -15,6 +15,7 @@ docx2txt==0.8
 python-pptx==1.0.2
 llama-cpp-python==0.3.1
 pytz
+pyinstaller
 hdbscan
 pandas
 questionary

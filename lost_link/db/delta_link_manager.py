@@ -10,9 +10,6 @@ class DeltaLinkManager:
         self._db = db
         self._session = self._db.create_session()
 
-    def __del__(self):
-        self._session.close()
-
     def get_delta_link(self, domain: str) -> str | None:
         stmt = select(DeltaLink).where(DeltaLink.domain == domain)
         delta_link = self._session.scalar(stmt)

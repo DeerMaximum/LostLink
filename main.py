@@ -10,7 +10,7 @@ from halo import Halo
 from langchain_chroma import Chroma
 from langchain_community.embeddings import LlamaCppEmbeddings
 
-import args
+import lost_link.args as args
 from lost_link.ai.cluster import Cluster
 from lost_link.ai.embedding_generator import EmbeddingGenerator
 from lost_link.ai.file_to_document import FileToDocumentConverter
@@ -46,7 +46,7 @@ class LostLink:
         self._args = args.init_argparser().parse_args()
         self._debug = self._args.debug
 
-        self._dir_manager = DirManager("../workdir")
+        self._dir_manager = DirManager(os.path.join(os.getcwd(), "workdir"))
         ServiceLocator.register_service("dir_manager", self._dir_manager)
         self._dir_manager.create_workspace()
 
