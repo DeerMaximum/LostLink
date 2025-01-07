@@ -69,6 +69,7 @@ class OneDriveSynchronizer:
 
         # Changed files
         if db_file and not "deleted" in file_change:
+            SynchUtil.delete_embeddings(db_file)
             self._file_manager.remove_file(db_file)
             drive_item = OneDriveAccess.search_drive_item(id)
             if SynchUtil.is_extension_allowed(drive_item):
@@ -80,6 +81,7 @@ class OneDriveSynchronizer:
 
         # Deleted files
         if db_file and "deleted" in file_change:
+            SynchUtil.delete_embeddings(db_file)
             self._file_manager.remove_file(db_file)
             self._file_manager.save_updates()
 
@@ -129,6 +131,7 @@ class SharePointSynchronizer:
 
         # Changed files
         if db_file and not "deleted" in file_change:
+            SynchUtil.delete_embeddings(db_file)
             self._file_manager.remove_file(db_file)
             drive_item = SharePointAccess.search_drive_item(site_id, file_id)
             if SynchUtil.is_extension_allowed(drive_item):
@@ -140,6 +143,7 @@ class SharePointSynchronizer:
 
         # Deleted files
         if db_file and "deleted" in file_change:
+            SynchUtil.delete_embeddings(db_file)
             self._file_manager.remove_file(db_file)
             self._file_manager.save_updates()
 
@@ -200,6 +204,12 @@ class SynchUtil:
         if os.path.exists(file_path):
             os.remove(file_path)
         return None
+    
+    @staticmethod
+    def delete_embeddings(file):
+        embedding_generator = ServiceLocator.get_service("embedding_generator")
+        embedding_generator.delete_file_embeddings(file)
+
 
     @staticmethod
     def download_file(file_item: str) -> str:
