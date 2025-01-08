@@ -4,7 +4,7 @@ import os
 from zoneinfo import ZoneInfo
 import requests
 
-from const import ALLOWED_EXTENSIONS
+from lost_link.const import ALLOWED_EXTENSIONS
 from lost_link.db.db_models import OneDriveFile, SharePointFile
 from lost_link.db.delta_link_manager import DeltaLinkManager
 from lost_link.db.one_drive_file_manager import OneDriveFileManager
