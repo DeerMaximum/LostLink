@@ -76,7 +76,7 @@ class LostLink:
 
     def _background_job(self):
         if self._local_file_manager.get_file_count() == 0:
-            self._spinner.start("Führe erstes Scannen der Verzeichnis durch")
+            self._spinner.start("Führe erstes Scannen der Verzeichnisse durch")
             self._local_scan()
             self._spinner.succeed()
 
@@ -88,7 +88,7 @@ class LostLink:
     def _prepare_ai(self):
         model_manager = ModelManager(self._dir_manager.get_model_dir())
         if model_manager.need_init():
-            self._spinner.warn("Keine Model gefunden. Starte Download")
+            self._spinner.warn("Kein Modell gefunden. Starte Download")
             model_manager.init_models()
             self._spinner.start()
 
@@ -185,7 +185,7 @@ class LostLink:
         self._spinner.succeed()
 
         if self._local_file_manager.get_file_count() == 0:
-            self._spinner.start("Führe erstes Scannen der Verzeichnis durch")
+            self._spinner.start("Führe erstes Scannen der Verzeichnisse durch")
             self._local_scan()
             self._spinner.succeed()
 
