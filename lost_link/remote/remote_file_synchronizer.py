@@ -1,5 +1,7 @@
+from datetime import datetime
 import json
 import os
+from zoneinfo import ZoneInfo
 import requests
 
 from const import ALLOWED_EXTENSIONS
@@ -183,6 +185,9 @@ class SynchUtil:
         parent_path = drive_item.get("parentReference", {}).get("path", "")
         path = parent_path + "/" + name
         url = drive_item.get("webUrl", "")
+        last_modified_str = drive_item.get("lastModifiedDateTime", "")
+        last_modified_datetime = datetime.fromisoformat(last_modified_str.replace("Z", "+00:00"))
+        last_modified_local = last_modified_datetime.astimezone(ZoneInfo("Europe/Berlin"))
 
         # Gemeinsame Felder
         file_data = {
@@ -190,6 +195,7 @@ class SynchUtil:
             "name": name,
             "path": path,
             "url": url,
+            "last_modified_date": last_modified_local
         }
 
         # Zusätzliche Felder nur hinzufügen, wenn sie gebraucht werden

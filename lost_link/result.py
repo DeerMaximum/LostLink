@@ -50,7 +50,7 @@ class ResultMapper:
     def _map_onedrive(file: OneDriveFile) -> ResultEntry:
         return ResultEntry(
             filename=file.name,
-            last_modified=datetime.now(),
+            last_modified=file.last_modified_date,
             source=f"OneDrive: [{file.path}]",
             open_url=file.url
         )
@@ -59,7 +59,7 @@ class ResultMapper:
     def _map_share_point(file: SharePointFile) -> ResultEntry:
         return ResultEntry(
             filename=file.name,
-            last_modified=datetime.now(),
+            last_modified=file.last_modified_date,
             source=f"SharePoint: [{file.path}]",
             open_url=file.url
         )
