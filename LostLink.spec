@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 import site
+import os
 
 a = Analysis(
     ['main.py'],
@@ -18,11 +19,10 @@ a = Analysis(
 #Change to your paths
 lib_path = site.getsitepackages()[1]
 
-a.datas += Tree(f'{lib_path}\langchain', prefix='langchain')
-a.datas += Tree(f'{lib_path}\llama_cpp', prefix='llama_cpp')
-a.datas += Tree(f'{lib_path}\chromadb', prefix='chromadb')
-a.datas += Tree(f'{lib_path}\pypika', prefix='pypika')
-
+a.datas += Tree(os.path.join(lib_path, "langchain"), prefix='langchain')
+a.datas += Tree(os.path.join(lib_path, "llama_cpp"), prefix='llama_cpp')
+a.datas += Tree(os.path.join(lib_path, "chromadb"), prefix='chromadb')
+a.datas += Tree(os.path.join(lib_path, "pypika"), prefix='pypika')
 pyz = PYZ(a.pure)
 
 exe = EXE(
