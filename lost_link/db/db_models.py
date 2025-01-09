@@ -50,6 +50,7 @@ class OneDriveFile(Base):
     name: Mapped[str] = mapped_column(String(), nullable=True)
     path: Mapped[Optional[str]] = mapped_column(String(), nullable=True)
     url: Mapped[Optional[str]] = mapped_column(String(), nullable=True)
+    last_modified_date: Mapped[datetime] = mapped_column(DateTime())
 
     embeddings: Mapped[list[Embedding]] = relationship('Embedding', backref='one_drive_file')
 
@@ -61,6 +62,7 @@ class SharePointFile(Base):
     name: Mapped[str] = mapped_column(String(), nullable=True)
     path: Mapped[Optional[str]] = mapped_column(String(), nullable=True)
     url: Mapped[Optional[str]] = mapped_column(String(), nullable=True)
+    last_modified_date: Mapped[datetime] = mapped_column(DateTime())
 
     embeddings: Mapped[list["Embedding"]] = relationship(
         "Embedding",
