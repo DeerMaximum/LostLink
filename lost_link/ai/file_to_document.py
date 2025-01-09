@@ -34,13 +34,18 @@ class FileToDocumentConverter:
         content = ""
         last_metadata = {}
 
-        for page in loader.load():
-            content += page.page_content
-            content += "\n\n"
-            last_metadata = page.metadata
+        try:
+            for page in loader.load():
+                content += page.page_content
+                content += "\n\n"
+                last_metadata = page.metadata
 
-        document = Document(content, metadata={
-            "source": last_metadata["source"],
-        })
+            document = Document(content, metadata={
+                "source": last_metadata["source"],
+            })
 
-        return self._splitter.split_documents([document])
+            return self._splitter.split_documents([document])
+        
+        except Exception as e:
+            print(f"Failed to generate embedding for file {file_path}: {e}")
+            return None
