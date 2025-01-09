@@ -26,6 +26,9 @@ class DirScanner:
     def _scan(self, path, allowed_extensions=[]) -> list[str]:
         subfolders, files = [], []
 
+        if not os.path.isdir(path):
+            return files
+
         for file in os.scandir(path):
             if file.is_dir():
                 if not self._is_entry_hidden(file):
