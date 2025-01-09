@@ -40,9 +40,9 @@ class ResultMapper:
     @staticmethod
     def _map_attachment(file: Attachment) -> ResultEntry:
         return ResultEntry(
-            filename=file.subject,
+            filename=file.name,
             last_modified=file.created,
-            source="E-Mail",
+            source=f"E-Mail: [{file.subject}]",
             open_url=file.link
         )
 
