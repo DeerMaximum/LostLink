@@ -48,6 +48,12 @@ class LocalFileManager:
     def get_all_new_files(self) -> Sequence[LocalFile]:
         stmt = select(LocalFile).where(LocalFile.embeddings == None)
         return self._session.scalars(stmt).all()
+    
+    def get_all_files_in_folder(self, folder_path) -> Sequence[LocalFile]:
+        if not folder_path.endswith("\\"):
+            folder_path += "\\"
+        stmt = select(LocalFile).where(LocalFile.path.like(f"{folder_path}%"))
+        return self._session.scalars(stmt).all()
 
     def save_updates(self):
         self._session.commit()

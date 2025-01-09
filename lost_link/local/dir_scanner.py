@@ -73,3 +73,20 @@ class DirScanner:
             delete_file.edited = False
 
         self._file_manager.save_updates()
+
+    def fetch_new_files(self, path: str, allowed_extensions=[]):
+        scan_date = datetime.now()
+
+        for file in self._scan(path, allowed_extensions):
+            change_time = os.path.getmtime(file)
+
+            db_file = self._file_manager.get_file_by_path(file)
+
+            #New files
+            if db_file is None:
+                self._file_manager.add_file(LocalFile(
+                    path=file,
+                    last_change_date=change_time,
+                    last_seen=scan_date
+                ))
+        self._file_manager.save_updates()
