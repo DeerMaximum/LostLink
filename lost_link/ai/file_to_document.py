@@ -47,5 +47,5 @@ class FileToDocumentConverter:
             return self._splitter.split_documents([document])
         
         except Exception as e:
-            print(f"Failed to generate embedding for file {file_path}: {e}")
+            print(f"\nFailed to generate embedding for file {file_path}: {e}")
             return None
