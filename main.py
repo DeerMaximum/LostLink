@@ -75,6 +75,11 @@ class LostLink:
         return os.path.splitext(path)[1] in ALLOWED_EXTENSIONS
 
     def _background_job(self):
+        local_paths = self._settings.get(self._settings.KEY_LOCAL_PATHS, [])
+        if len(local_paths) == 0:
+            print("Du hast keine Pfade eingestellt. Beende Programm.")
+            return
+
         if self._local_file_manager.get_file_count() == 0:
             self._spinner.start("Führe erstes Scannen der Verzeichnisse durch")
             self._local_scan()
@@ -82,8 +87,24 @@ class LostLink:
 
         print("Höre auf Änderungen")
         dir_watcher = DirWatcher(self._local_file_manager)
-        local_paths = self._settings.get(self._settings.KEY_LOCAL_PATHS, [])
         dir_watcher.watch(local_paths, ALLOWED_EXTENSIONS)
+
+    def _check_config(self) -> bool:
+        self._spinner.start("Überprüfe Konfiguration")
+
+        if self._settings.check_default_config():
+            self._spinner.fail("Es scheint so als würdest du die Standardkonfiguration verwenden. Bitte trage zumindest die APP_ID ein.")
+            return False
+
+        if self._settings.get(self._settings.KEY_APP_ID, "").strip() == "":
+            self._spinner.fail("Bitte setzte die APP_ID in der Konfigurationsdatei.")
+            return False
+
+        if len(self._settings.get(self._settings.KEY_LOCAL_PATHS, [])) == 0:
+            self._spinner.warn("Du hast keine lokalen Pfade konfiguriert.")
+
+        return True
+
 
     def _prepare_ai(self):
         model_manager = ModelManager(self._dir_manager.get_model_dir())
@@ -179,6 +200,9 @@ class LostLink:
             return self._background_job()
 
         art.tprint("File History AI")
+
+        if not self._check_config():
+            return
 
         self._spinner.start("KI Modelle vorbereiten")
         self._prepare_ai()

@@ -35,5 +35,8 @@ class Settings:
             with open(path, 'r', encoding='utf-8') as file:
                 self._settings = json.load(file)
 
+    def check_default_config(self) -> bool:
+        return self._settings == self._SETTINGS_TEMPLATE
+
     def get(self, key: str, default=None):
         return self._settings.get(key, default)
