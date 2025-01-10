@@ -92,22 +92,19 @@ class LostLink:
         dir_watcher = DirWatcher(self._local_file_manager)
         dir_watcher.watch(local_paths, ALLOWED_EXTENSIONS)
 
-    def _check_config(self) -> bool:
+    def _check_config(self):
         self._spinner.start("Überprüfe Konfiguration")
 
         if self._settings.check_default_config():
             self._spinner.fail("Es scheint so als würdest du die Standardkonfiguration verwenden. Bitte trage zumindest die APP_ID ein.")
-            return False
+            sys.exit(1)
 
         if self._settings.get(self._settings.KEY_APP_ID, "").strip() == "":
             self._spinner.fail("Bitte setzte die APP_ID in der Konfigurationsdatei.")
-            return False
+            sys.exit(1)
 
         if len(self._settings.get(self._settings.KEY_LOCAL_PATHS, [])) == 0:
             self._spinner.warn("Du hast keine lokalen Pfade konfiguriert.")
-
-        return True
-
 
     def _prepare_ai(self):
         model_manager = ModelManager(self._dir_manager.get_model_dir())
@@ -135,6 +132,16 @@ class LostLink:
         dir_scanner = DirScanner(self._local_file_manager)
         for path in self._settings.get(self._settings.KEY_LOCAL_PATHS, []):
             dir_scanner.fetch_changed_files(path, ALLOWED_EXTENSIONS)
+
+    def _login_graph_api(self):
+        try:
+            self._graph_api_authentication.login_if_needed()
+        except RuntimeError as e:
+            self._spinner.fail(str(e))
+            sys.exit(1)
+        except Exception:
+            self._spinner.fail("Konnte Datei nicht herunterladen")
+            sys.exit(1)
 
     def _update_embeddings(self):
         self._vector_db = Chroma(persist_directory=self._dir_manager.get_vector_db_dir(),
@@ -213,8 +220,7 @@ class LostLink:
 
         art.tprint("File History AI")
 
-        if not self._check_config():
-            return
+        self._check_config()
 
         self._spinner.start("KI Modelle vorbereiten")
         self._prepare_ai()
@@ -225,7 +231,7 @@ class LostLink:
             self._local_scan()
             self._spinner.succeed()
 
-        self._graph_api_authentication.login_if_needed()
+        self._login_graph_api()
 
         self._spinner.start("Dateien aktualisieren und Embeddings generieren")
         self._update_embeddings()
