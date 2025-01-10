@@ -102,7 +102,7 @@ class OneDriveAccess:
         if self._new_delta_link:
             self._delta_link_manager.save_delta_link("OneDrive", self._new_delta_link)
 
-    staticmethod
+    @staticmethod
     def search_drive_item(item_id: str):
         request_url = "https://graph.microsoft.com/v1.0/me/drive/items/" + item_id
         response = GraphAPIAccess.api_request(request_url)
@@ -142,7 +142,7 @@ class SharePointAccess:
         if self._new_delta_link:
             self._delta_link_manager.save_delta_link(self._delta_link_key, self._new_delta_link)
 
-    staticmethod
+    @staticmethod
     def search_drive_item(site_id: str, item_id: str):
         request_url = "https://graph.microsoft.com/v1.0/sites/" + site_id + "/drive/items/" + item_id
         response = GraphAPIAccess.api_request(request_url)

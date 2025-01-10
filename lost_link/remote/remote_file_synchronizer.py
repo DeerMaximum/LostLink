@@ -20,10 +20,11 @@ class RemoteFileSynchronizer:
         self._share_point_file_manager = share_point_file_manager
         self._delta_link_manager = delta_link_manager
 
-    def update_remote_files(self):
+    def update_one_drive(self):
         one_drive_synchronizer = OneDriveSynchronizer(self._one_drive_file_manager, self._delta_link_manager)
         one_drive_synchronizer.update_one_drive_files()
 
+    def update_share_point(self):
         share_point_synchronizer = SharePointSynchronizer(self._share_point_file_manager, self._delta_link_manager)
         share_point_synchronizer.update_share_point_files()
     
@@ -44,10 +45,20 @@ class OneDriveSynchronizer:
         delta_changes = one_drive_access.get_delta_changes()
         file_changes = SynchUtil.filter_document_files(delta_changes)
 
+        failed_file_changes = []
+
         for file_change in file_changes:
-            self._handle_file(file_change)
+            try:
+                self._handle_file(file_change)
+            except Exception:
+                failed_file_changes.append(file_change.get('id', ''))
+                continue
 
         one_drive_access.save_delta_link()
+
+        if len(failed_file_changes) > 0:
+            msg = "\n".join([f"Konnte OneDrive Datei {x} nicht verarbeiten" for x in failed_file_changes if len(failed_file_changes) > 0])
+            raise RuntimeError(msg)
         
     
     def _handle_file(self, file_change: dict):
@@ -105,12 +116,25 @@ class SharePointSynchronizer:
         share_point_access = SharePointAccess(self._delta_link_manager)
         response = share_point_access.get_all_share_point_sites()
         site_ids = [site.get("id") for site in response.get("value", []) if "id" in site]
+
+        failed_file_changes = []
+
         for site_id in site_ids:
             delta_changes = share_point_access.get_delta_changes(site_id)
             file_changes = SynchUtil.filter_document_files(delta_changes)
             for file_change in file_changes:
-                self._handle_file(file_change, site_id)
+
+                try:
+                    self._handle_file(file_change, site_id)
+                except Exception:
+                    failed_file_changes.append(f"Site: {site_id} - ID: {file_change.get('id', '')}")
+                    continue
+
             share_point_access.save_delta_link()
+
+        if len(failed_file_changes) > 0:
+            msg = "\n".join([f"Konnte SharePoint Datei {x} nicht verarbeiten" for x in failed_file_changes if len(failed_file_changes) > 0])
+            raise RuntimeError(msg)
                 
     def _handle_file(self, file_change: dict, site_id):
         if not file_change:

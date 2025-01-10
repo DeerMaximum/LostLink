@@ -144,6 +144,9 @@ class LostLink:
             sys.exit(1)
 
     def _update_embeddings(self):
+        spinner_start_text = "Dateien aktualisieren und Embeddings generieren"
+        self._spinner.start(spinner_start_text)
+
         self._vector_db = Chroma(persist_directory=self._dir_manager.get_vector_db_dir(),
                                  embedding_function=self._embeddings_model)
         self._file_converter = FileToDocumentConverter()
@@ -161,8 +164,28 @@ class LostLink:
                                                           self._delta_link_manager)
 
         local_file_processor.process_changes()
-        remote_file_synchronizer.update_remote_files()
-        outlook.update()
+        try:
+            remote_file_synchronizer.update_one_drive()
+        except RuntimeError as e:
+            self._spinner.warn("Es sind Fehler aufgetreten:")
+            print(str(e))
+            self._spinner.start(spinner_start_text)
+
+        try:
+            remote_file_synchronizer.update_share_point()
+        except RuntimeError as e:
+            self._spinner.warn("Es sind Fehler aufgetreten:")
+            print(str(e))
+            self._spinner.start(spinner_start_text)
+
+        try:
+            outlook.update()
+        except RuntimeError as e:
+            self._spinner.warn("Es sind Fehler aufgetreten:")
+            print(str(e))
+            return
+
+        self._spinner.succeed()
 
     def _cluster_files(self):
         self._cluster = Cluster(self._vector_db, self._settings)
@@ -233,9 +256,7 @@ class LostLink:
 
         self._login_graph_api()
 
-        self._spinner.start("Dateien aktualisieren und Embeddings generieren")
         self._update_embeddings()
-        self._spinner.succeed()
 
         self._spinner.start("Daten clustern")
         self._cluster_files()
@@ -255,4 +276,10 @@ class LostLink:
 
 if __name__ == "__main__":
     app = LostLink()
-    app.main()
+    try:
+        app.main()
+    except KeyboardInterrupt:
+        sys.exit(1)
+    except Exception:
+        print("\nDie App wurde aufgrund eines Fehlers beendet\n")
+        sys.exit(1)
