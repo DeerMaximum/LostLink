@@ -7,11 +7,11 @@ import art
 import questionary
 import webbrowser
 
+import requests
 from questionary import Choice
 from halo import Halo
 from langchain_chroma import Chroma
 from langchain_community.embeddings import LlamaCppEmbeddings
-from urllib3.exceptions import HTTPError
 
 import lost_link.args as args
 from lost_link.ai.cluster import Cluster
@@ -280,6 +280,9 @@ if __name__ == "__main__":
         app.main()
     except KeyboardInterrupt:
         sys.exit(1)
-    except Exception:
+    except requests.exceptions.ConnectionError:
+        print("\nKeine Verbindung zum Server. Beende\n")
+        sys.exit(1)
+    except Exception as e:
         print("\nDie App wurde aufgrund eines Fehlers beendet\n")
         sys.exit(1)

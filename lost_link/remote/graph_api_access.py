@@ -64,15 +64,10 @@ class OutlookAccess:
     def download_attachment(self, msg_id: str, att_id:str, path: str):
         url = f"{self.BASE_URL}/{msg_id}/attachments/{att_id}/$value"
 
-        try:
-            response = GraphAPIAccess.raw_request(url)
-            response.raise_for_status()
-            with open(path, mode="wb") as file:
-                file.write(response.content)
-        except Exception as e:
-            print(f"Failed to download attachment {att_id}: {e}")
-
-
+        response = GraphAPIAccess.raw_request(url)
+        response.raise_for_status()
+        with open(path, mode="wb") as file:
+            file.write(response.content)
 
 class OneDriveAccess:
 
