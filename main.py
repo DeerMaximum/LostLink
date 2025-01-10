@@ -1,14 +1,17 @@
 import logging
 import os
+import sys
 import warnings
 
 import art
 import questionary
 import webbrowser
+
 from questionary import Choice
 from halo import Halo
 from langchain_chroma import Chroma
 from langchain_community.embeddings import LlamaCppEmbeddings
+from urllib3.exceptions import HTTPError
 
 import lost_link.args as args
 from lost_link.ai.cluster import Cluster
@@ -110,7 +113,16 @@ class LostLink:
         model_manager = ModelManager(self._dir_manager.get_model_dir())
         if model_manager.need_init():
             self._spinner.warn("Kein Modell gefunden. Starte Download")
-            model_manager.init_models()
+
+            try:
+                model_manager.init_models()
+            except RuntimeError as e:
+                self._spinner.fail(str(e))
+                sys.exit(1)
+            except Exception:
+                self._spinner.fail("Konnte Datei nicht herunterladen")
+                sys.exit(1)
+
             self._spinner.start()
 
         self._embeddings_model = LlamaCppEmbeddings(
