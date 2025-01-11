@@ -15,6 +15,7 @@ class GraphAPIAccess:
     @staticmethod
     def api_request(request_url: str) -> dict[str, Any]:
         response = GraphAPIAccess.raw_request(request_url)
+        response.raise_for_status()
         return response.json()
 
     @staticmethod
@@ -64,15 +65,10 @@ class OutlookAccess:
     def download_attachment(self, msg_id: str, att_id:str, path: str):
         url = f"{self.BASE_URL}/{msg_id}/attachments/{att_id}/$value"
 
-        try:
-            response = GraphAPIAccess.raw_request(url)
-            response.raise_for_status()
-            with open(path, mode="wb") as file:
-                file.write(response.content)
-        except Exception as e:
-            print(f"Failed to download attachment {att_id}: {e}")
-
-
+        response = GraphAPIAccess.raw_request(url)
+        response.raise_for_status()
+        with open(path, mode="wb") as file:
+            file.write(response.content)
 
 class OneDriveAccess:
 
@@ -102,7 +98,7 @@ class OneDriveAccess:
         if self._new_delta_link:
             self._delta_link_manager.save_delta_link("OneDrive", self._new_delta_link)
 
-    staticmethod
+    @staticmethod
     def search_drive_item(item_id: str):
         request_url = "https://graph.microsoft.com/v1.0/me/drive/items/" + item_id
         response = GraphAPIAccess.api_request(request_url)
@@ -142,7 +138,7 @@ class SharePointAccess:
         if self._new_delta_link:
             self._delta_link_manager.save_delta_link(self._delta_link_key, self._new_delta_link)
 
-    staticmethod
+    @staticmethod
     def search_drive_item(site_id: str, item_id: str):
         request_url = "https://graph.microsoft.com/v1.0/sites/" + site_id + "/drive/items/" + item_id
         response = GraphAPIAccess.api_request(request_url)
