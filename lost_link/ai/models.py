@@ -23,7 +23,7 @@ class ModelManager:
                     file.write(chunk)
 
                 if total_size != 0 and progress_bar.n != total_size:
-                    raise RuntimeError("Could not download file")
+                    raise RuntimeError("Heruntergeladene Datei ist korrupt")
 
     def init_models(self):
         for filename, dl_link in self.ALL_MODELS:

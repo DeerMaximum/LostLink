@@ -2,8 +2,8 @@ import os
 from datetime import datetime
 from stat import FILE_ATTRIBUTE_HIDDEN
 
-from const import ALLOWED_EXTENSIONS
-from local.dir_scanner import DirScanner
+from lost_link.const import ALLOWED_EXTENSIONS
+from lost_link.local.dir_scanner import DirScanner
 from lost_link.db.local_file_manager import LocalFileManager, LocalFile
 from watchfiles import watch, Change
 

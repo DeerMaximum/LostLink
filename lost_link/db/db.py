@@ -12,8 +12,12 @@ class DB:
         Base.metadata.create_all(self._engine)
 
     def __del__(self):
-        if self._session:
-            self._session.close()
+        try:
+            if self._session:
+                self._session.close()
+        # Wenn als Exe das Programm ohne den Code 0 beendet wird, fliegt diese Exception. Ignorieren um Stacktrace auszublenden
+        except AttributeError:
+            return
 
     def create_session(self) -> Session:
         if self._session is None:

@@ -1,10 +1,13 @@
 import logging
 import os
+import sys
 import warnings
 
 import art
 import questionary
 import webbrowser
+
+import requests
 from questionary import Choice
 from halo import Halo
 from langchain_chroma import Chroma
@@ -75,6 +78,11 @@ class LostLink:
         return os.path.splitext(path)[1] in ALLOWED_EXTENSIONS
 
     def _background_job(self):
+        local_paths = self._settings.get(self._settings.KEY_LOCAL_PATHS, [])
+        if len(local_paths) == 0:
+            print("Du hast keine Pfade eingestellt. Beende Programm.")
+            return
+
         if self._local_file_manager.get_file_count() == 0:
             self._spinner.start("Führe erstes Scannen der Verzeichnisse durch")
             self._local_scan()
@@ -82,14 +90,36 @@ class LostLink:
 
         print("Höre auf Änderungen")
         dir_watcher = DirWatcher(self._local_file_manager)
-        local_paths = self._settings.get(self._settings.KEY_LOCAL_PATHS, [])
         dir_watcher.watch(local_paths, ALLOWED_EXTENSIONS)
+
+    def _check_config(self):
+        self._spinner.start("Überprüfe Konfiguration")
+
+        if self._settings.check_default_config():
+            self._spinner.fail("Es scheint so als würdest du die Standardkonfiguration verwenden. Bitte trage zumindest die APP_ID ein.")
+            sys.exit(1)
+
+        if self._settings.get(self._settings.KEY_APP_ID, "").strip() == "":
+            self._spinner.fail("Bitte setzte die APP_ID in der Konfigurationsdatei.")
+            sys.exit(1)
+
+        if len(self._settings.get(self._settings.KEY_LOCAL_PATHS, [])) == 0:
+            self._spinner.warn("Du hast keine lokalen Pfade konfiguriert.")
 
     def _prepare_ai(self):
         model_manager = ModelManager(self._dir_manager.get_model_dir())
         if model_manager.need_init():
             self._spinner.warn("Kein Modell gefunden. Starte Download")
-            model_manager.init_models()
+
+            try:
+                model_manager.init_models()
+            except RuntimeError as e:
+                self._spinner.fail(str(e))
+                sys.exit(1)
+            except Exception:
+                self._spinner.fail("Konnte Datei nicht herunterladen")
+                sys.exit(1)
+
             self._spinner.start()
 
         self._embeddings_model = LlamaCppEmbeddings(
@@ -103,7 +133,20 @@ class LostLink:
         for path in self._settings.get(self._settings.KEY_LOCAL_PATHS, []):
             dir_scanner.fetch_changed_files(path, ALLOWED_EXTENSIONS)
 
+    def _login_graph_api(self):
+        try:
+            self._graph_api_authentication.login_if_needed()
+        except RuntimeError as e:
+            self._spinner.fail(str(e))
+            sys.exit(1)
+        except Exception:
+            self._spinner.fail("Login bei der Graph API fehlgeschlagen")
+            sys.exit(1)
+
     def _update_embeddings(self):
+        spinner_start_text = "Dateien aktualisieren und Embeddings generieren"
+        self._spinner.start(spinner_start_text)
+
         self._vector_db = Chroma(persist_directory=self._dir_manager.get_vector_db_dir(),
                                  embedding_function=self._embeddings_model)
         self._file_converter = FileToDocumentConverter()
@@ -120,9 +163,35 @@ class LostLink:
         remote_file_synchronizer = RemoteFileSynchronizer(self._one_drive_file_manager, self._share_point_file_manager,
                                                           self._delta_link_manager)
 
-        local_file_processor.process_changes()
-        remote_file_synchronizer.update_remote_files()
-        outlook.update()
+        try:
+            local_file_processor.process_changes()
+        except RuntimeError as e:
+            self._spinner.warn("Es sind Fehler aufgetreten:")
+            print(str(e))
+            self._spinner.start(spinner_start_text)
+
+        try:
+            remote_file_synchronizer.update_one_drive()
+        except RuntimeError as e:
+            self._spinner.warn("Es sind Fehler aufgetreten:")
+            print(str(e))
+            self._spinner.start(spinner_start_text)
+
+        try:
+            remote_file_synchronizer.update_share_point()
+        except RuntimeError as e:
+            self._spinner.warn("Es sind Fehler aufgetreten:")
+            print(str(e))
+            self._spinner.start(spinner_start_text)
+
+        try:
+            outlook.update()
+        except RuntimeError as e:
+            self._spinner.warn("Es sind Fehler aufgetreten:")
+            print(str(e))
+            return
+
+        self._spinner.succeed()
 
     def _cluster_files(self):
         self._cluster = Cluster(self._vector_db, self._settings)
@@ -180,6 +249,8 @@ class LostLink:
 
         art.tprint("File History AI")
 
+        self._check_config()
+
         self._spinner.start("KI Modelle vorbereiten")
         self._prepare_ai()
         self._spinner.succeed()
@@ -189,11 +260,9 @@ class LostLink:
             self._local_scan()
             self._spinner.succeed()
 
-        self._graph_api_authentication.login_if_needed()
+        self._login_graph_api()
 
-        self._spinner.start("Dateien aktualisieren und Embeddings generieren")
         self._update_embeddings()
-        self._spinner.succeed()
 
         self._spinner.start("Daten clustern")
         self._cluster_files()
@@ -213,4 +282,13 @@ class LostLink:
 
 if __name__ == "__main__":
     app = LostLink()
-    app.main()
+    try:
+        app.main()
+    except KeyboardInterrupt:
+        sys.exit(1)
+    except requests.exceptions.ConnectionError:
+        print("\nKeine Verbindung zum Server. Beende\n")
+        sys.exit(1)
+    except Exception as e:
+        print("\nDie App wurde aufgrund eines Fehlers beendet\n")
+        sys.exit(1)

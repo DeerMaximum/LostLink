@@ -111,6 +111,10 @@ class GraphAPIAuthentication:
 
     def _generate_new_access_token(self, client: msal.PublicClientApplication, permission_scopes: list[str]) -> dict:
             flow = client.initiate_device_flow(scopes=permission_scopes)
+
+            if len(flow.get("error_codes", [])) > 0:
+                codes_str = ",".join([str(x) for x in flow["error_codes"]])
+                raise RuntimeError(f"Konnte Anmeldeflow nicht starten. Fehlercodes: {codes_str}. Hast du eine valide APP_ID eingetragen?")
             
             print(flow['message'])
             webbrowser.open(flow['verification_uri'])

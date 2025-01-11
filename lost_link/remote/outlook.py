@@ -52,21 +52,20 @@ class Outlook:
 
         return new_attachments
 
-    def _process_new_attachments(self, new_attachments: list[Attachment]):
-        for new_attachment in new_attachments:
-            extension = os.path.splitext(new_attachment.name)[1]
-            if extension not in ALLOWED_EXTENSIONS:
-                continue
+    def _process_new_attachment(self, new_attachment: Attachment):
+        extension = os.path.splitext(new_attachment.name)[1]
+        if extension not in ALLOWED_EXTENSIONS:
+            return
 
-            filename = f"{uuid.uuid4().hex}{extension}"
-            path = os.path.join(self._tmp_base_path, filename)
-            self._api.download_attachment(new_attachment.msg_id, new_attachment.id, path)
+        filename = f"{uuid.uuid4().hex}{extension}"
+        path = os.path.join(self._tmp_base_path, filename)
+        self._api.download_attachment(new_attachment.msg_id, new_attachment.id, path)
 
-            self._embedding_generator.generate_and_store_embeddings(path, Attachment, new_attachment.internet_id)
+        self._embedding_generator.generate_and_store_embeddings(path, Attachment, new_attachment.internet_id)
 
-            os.remove(path)
-            self._attachment_manager.add_attachment(new_attachment)
-            self._attachment_manager.save_updates()
+        os.remove(path)
+        self._attachment_manager.add_attachment(new_attachment)
+        self._attachment_manager.save_updates()
 
     def update(self):
         now = datetime.datetime.now()
@@ -97,4 +96,18 @@ class Outlook:
                                               ))
 
         self._process_old_attachments(attachments)
-        self._process_new_attachments(self._get_new_attachments(attachments))
+
+        failed_attachments = []
+
+        for new_attachment in self._get_new_attachments(attachments):
+            try:
+                self._process_new_attachment(new_attachment)
+            except RuntimeError as e:
+                failed_attachments.append({"file": "new_attachment.id", "reason": str(e)})
+            except Exception:
+                failed_attachments.append(new_attachment.id)
+                continue
+
+        if len(failed_attachments) > 0:
+            msg = "\n".join([f"Konnte E-Mail Anhang {x.get("file")} nicht verarbeiten" + (f": \n\t{x['reason']}" if x['reason'] else "") for x in failed_attachments if len(x) > 0])
+            raise RuntimeError(msg)
