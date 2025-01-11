@@ -149,7 +149,7 @@ class LostLink:
 
         self._vector_db = Chroma(persist_directory=self._dir_manager.get_vector_db_dir(),
                                  embedding_function=self._embeddings_model)
-        self._file_converter = FileToDocumentConverter()
+        self._file_converter = FileToDocumentConverter(self._settings)
 
         embedding_generator = EmbeddingGenerator(self._vector_db, self._embeddings_manager, self._file_converter)
         ServiceLocator.register_service("embedding_generator", embedding_generator)
