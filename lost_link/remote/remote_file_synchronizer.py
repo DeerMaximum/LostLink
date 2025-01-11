@@ -50,14 +50,16 @@ class OneDriveSynchronizer:
         for file_change in file_changes:
             try:
                 self._handle_file(file_change)
+            except RuntimeError as e:
+                    failed_file_changes.append({"file": f"ID: {file_change.get('id', '')}", "reason": str(e)})
             except Exception:
-                failed_file_changes.append(file_change.get('id', ''))
+                failed_file_changes.append({"file": f"ID: {file_change.get('id', '')}"})
                 continue
 
         one_drive_access.save_delta_link()
 
         if len(failed_file_changes) > 0:
-            msg = "\n".join([f"Konnte OneDrive Datei {x} nicht verarbeiten" for x in failed_file_changes if len(x) > 0])
+            msg = "\n".join([f"Konnte OneDrive Datei {x.get("file")} nicht verarbeiten" + (f": \n\t{x['reason']}" if x['reason'] else "") for x in failed_file_changes if len(x) > 0])
             raise RuntimeError(msg)
         
     
@@ -126,14 +128,16 @@ class SharePointSynchronizer:
 
                 try:
                     self._handle_file(file_change, site_id)
+                except RuntimeError as e:
+                    failed_file_changes.append({"file": f"Site: {site_id} - ID: {file_change.get('id', '')}", "reason": str(e)})
                 except Exception:
-                    failed_file_changes.append(f"Site: {site_id} - ID: {file_change.get('id', '')}")
+                    failed_file_changes.append({"file": f"Site: {site_id} - ID: {file_change.get('id', '')}"})
                     continue
 
             share_point_access.save_delta_link()
 
         if len(failed_file_changes) > 0:
-            msg = "\n".join([f"Konnte SharePoint Datei {x} nicht verarbeiten" for x in failed_file_changes if len(x) > 0])
+            msg = "\n".join([f"Konnte SharePoint Datei {x.get("file")} nicht verarbeiten" + (f": \n\t{x['reason']}" if x['reason'] else "") for x in failed_file_changes if len(x) > 0])
             raise RuntimeError(msg)
                 
     def _handle_file(self, file_change: dict, site_id):
@@ -256,7 +260,7 @@ class SynchUtil:
         save_dir = dir_manager.get_tmp_dir()
         download_url = file_item.get("@microsoft.graph.downloadUrl", "")
         if not download_url:
-            raise RuntimeError(f"Konnte Datei '{file_item['name']}' nicht herunterladen. Es wurde keine Download gefunden")
+            raise RuntimeError(f"Konnte Datei '{file_item['name']}' nicht herunterladen. Es wurde keine Download-URL gefunden")
         file_path = os.path.join(save_dir, file_item['name'])
         try:
             response = requests.get(download_url)

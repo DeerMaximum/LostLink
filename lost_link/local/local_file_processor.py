@@ -44,21 +44,21 @@ class LocalFileProcessor:
         for file in self._file_manager.get_all_edited_files():
             try:
                 self._process_edited_file(file)
-            except RuntimeError:
-                failed_files.append(file.path)
+            except RuntimeError as e:
+                failed_files.append({"file": file.path, "reason": str(e)})
 
         for file in self._file_manager.get_all_deleted_files():
             try:
                 self._process_deleted_file(file)
-            except RuntimeError:
-                failed_files.append(file.path)
+            except RuntimeError as e:
+                failed_files.append({"file": file.path, "reason": str(e)})
 
         for file in self._file_manager.get_all_new_files():
             try:
                 self._process_new_file(file)
-            except RuntimeError:
-                failed_files.append(file.path)
+            except RuntimeError as e:
+                failed_files.append({"file": file.path, "reason": str(e)})
 
         if len(failed_files) > 0:
-            msg = "\n".join([f"Konnte lokale Datei {x} nicht verarbeiten" for x in failed_files if len(x) > 0])
+            msg = "\n".join([f"Konnte lokale Datei {x.get("file")} nicht verarbeiten" + (f": \n\t{x['reason']}" if x['reason'] else "") for x in failed_files if len(x) > 0])
             raise RuntimeError(msg)

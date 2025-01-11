@@ -102,10 +102,12 @@ class Outlook:
         for new_attachment in self._get_new_attachments(attachments):
             try:
                 self._process_new_attachment(new_attachment)
+            except RuntimeError as e:
+                failed_attachments.append({"file": "new_attachment.id", "reason": str(e)})
             except Exception:
                 failed_attachments.append(new_attachment.id)
                 continue
 
         if len(failed_attachments) > 0:
-            msg = "\n".join([f"Konnte E-Mail Anhang {x} nicht verarbeiten" for x in failed_attachments if len(x) > 0])
+            msg = "\n".join([f"Konnte E-Mail Anhang {x.get("file")} nicht verarbeiten" + (f": \n\t{x['reason']}" if x['reason'] else "") for x in failed_attachments if len(x) > 0])
             raise RuntimeError(msg)
