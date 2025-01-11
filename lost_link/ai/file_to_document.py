@@ -8,7 +8,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 class FileToDocumentConverter:
 
     def __init__(self):
-        self._splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=350)
+        self._splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=150)
 
     @staticmethod
     def _get_loader(path: str) -> BaseLoader | None:
@@ -36,7 +36,7 @@ class FileToDocumentConverter:
 
         try:
             for page in loader.load():
-                content += page.page_content
+                content += page.page_content.lower()
                 content += "\n\n"
                 last_metadata = page.metadata
 
