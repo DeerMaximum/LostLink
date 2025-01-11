@@ -57,7 +57,7 @@ class OneDriveSynchronizer:
         one_drive_access.save_delta_link()
 
         if len(failed_file_changes) > 0:
-            msg = "\n".join([f"Konnte OneDrive Datei {x} nicht verarbeiten" for x in failed_file_changes if len(failed_file_changes) > 0])
+            msg = "\n".join([f"Konnte OneDrive Datei {x} nicht verarbeiten" for x in failed_file_changes if len(x) > 0])
             raise RuntimeError(msg)
         
     
@@ -133,7 +133,7 @@ class SharePointSynchronizer:
             share_point_access.save_delta_link()
 
         if len(failed_file_changes) > 0:
-            msg = "\n".join([f"Konnte SharePoint Datei {x} nicht verarbeiten" for x in failed_file_changes if len(failed_file_changes) > 0])
+            msg = "\n".join([f"Konnte SharePoint Datei {x} nicht verarbeiten" for x in failed_file_changes if len(x) > 0])
             raise RuntimeError(msg)
                 
     def _handle_file(self, file_change: dict, site_id):
@@ -256,8 +256,7 @@ class SynchUtil:
         save_dir = dir_manager.get_tmp_dir()
         download_url = file_item.get("@microsoft.graph.downloadUrl", "")
         if not download_url:
-            print("Error, no download URL found")
-            return
+            raise RuntimeError(f"Konnte Datei '{file_item['name']}' nicht herunterladen. Es wurde keine Download gefunden")
         file_path = os.path.join(save_dir, file_item['name'])
         try:
             response = requests.get(download_url)
@@ -268,7 +267,7 @@ class SynchUtil:
         except Exception as e:
             if os.path.exists(file_path):
                 os.remove(file_path)
-            raise RuntimeError(f"Failed to download file {file_item['name']} from {download_url}") from e
+            raise RuntimeError(f"Konnte Datei '{file_item['name']}' nicht von {download_url} herunterladen") from e
     
 
     @staticmethod

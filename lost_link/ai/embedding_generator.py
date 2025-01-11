@@ -65,8 +65,7 @@ class EmbeddingGenerator:
         elif file_type == Attachment:
             return Embedding(id=embedding_id, attachment_id=file_id)
         else:
-            print(f"Unsupported file type: {file_type}")
-            return None
+            raise RuntimeError(f"Nicht unterstützter Dateityp: {file_type}")
 
     def delete_file_embeddings(self, file):
         ids_to_delete = [x.id for x in file.embeddings]

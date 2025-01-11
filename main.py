@@ -163,7 +163,13 @@ class LostLink:
         remote_file_synchronizer = RemoteFileSynchronizer(self._one_drive_file_manager, self._share_point_file_manager,
                                                           self._delta_link_manager)
 
-        local_file_processor.process_changes()
+        try:
+            local_file_processor.process_changes()
+        except RuntimeError as e:
+            self._spinner.warn("Es sind Fehler aufgetreten:")
+            print(str(e))
+            self._spinner.start(spinner_start_text)
+
         try:
             remote_file_synchronizer.update_one_drive()
         except RuntimeError as e:

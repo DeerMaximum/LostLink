@@ -107,5 +107,5 @@ class Outlook:
                 continue
 
         if len(failed_attachments) > 0:
-            msg = "\n".join([f"Konnte E-Mail Anhang {x} nicht verarbeiten" for x in failed_attachments if len(failed_attachments) > 0])
+            msg = "\n".join([f"Konnte E-Mail Anhang {x} nicht verarbeiten" for x in failed_attachments if len(x) > 0])
             raise RuntimeError(msg)
