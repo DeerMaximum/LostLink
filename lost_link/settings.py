@@ -10,6 +10,8 @@ class Settings:
     GROUP_KEY_HDBSCAN = "HDBSCAN"
     KEY_HDBSCAN_MIN_SAMPLES = "MIN_SAMPLES"
     KEY_HDBSCAN_MIN_CLUSTER_SIZE = "MIN_CLUSTER_SIZE"
+    KEY_HDBSCAN_SELECTION_EPSILON = "SELECTION_EPSILON"
+    KEY_TEXT_SPLITTING_OVERLAP = "TEXT_SPLITTING_OVERLAP"
 
     _SETTINGS_TEMPLATE: dict[str, Any] = {
         KEY_APP_ID: "",
@@ -18,9 +20,11 @@ class Settings:
 
         ],
         GROUP_KEY_HDBSCAN: {
-            KEY_HDBSCAN_MIN_SAMPLES: 3,
-            KEY_HDBSCAN_MIN_CLUSTER_SIZE: 2
-        }
+            KEY_HDBSCAN_MIN_SAMPLES: 4,
+            KEY_HDBSCAN_MIN_CLUSTER_SIZE: 10,
+            KEY_HDBSCAN_SELECTION_EPSILON: 0.2
+        },
+        KEY_TEXT_SPLITTING_OVERLAP: 150
     }
 
     def __init__(self, path: str):

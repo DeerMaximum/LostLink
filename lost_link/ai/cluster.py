@@ -39,10 +39,11 @@ class Cluster:
         embedding_entries = self._vector_db.get(include=["metadatas", "embeddings"])
 
         hdbscan_settings = self._settings.get(Settings.GROUP_KEY_HDBSCAN, {})
-        min_samples = hdbscan_settings.get(Settings.KEY_HDBSCAN_MIN_SAMPLES, 3)
-        min_cluster_size = hdbscan_settings.get(Settings.KEY_HDBSCAN_MIN_CLUSTER_SIZE, 2)
+        min_samples = hdbscan_settings.get(Settings.KEY_HDBSCAN_MIN_SAMPLES, 4)
+        min_cluster_size = hdbscan_settings.get(Settings.KEY_HDBSCAN_MIN_CLUSTER_SIZE, 10)
+        cluster_selection_epsilon = hdbscan_settings.get(Settings.KEY_HDBSCAN_SELECTION_EPSILON, 0.2)
 
-        hdb = HDBSCAN(gen_min_span_tree=True, min_samples=min_samples, min_cluster_size=min_cluster_size).fit(
+        hdb = HDBSCAN( min_samples=min_samples, min_cluster_size=min_cluster_size, metric='euclidean', cluster_selection_epsilon=cluster_selection_epsilon).fit(
             embedding_entries.get("embeddings", []))
 
         self.cluster_data["id"] = embedding_entries.get("ids", [])

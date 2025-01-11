@@ -1,6 +1,5 @@
 models/*.gguf
-test-data/*.txt
-test-data/*.pdf
+test-data/
 
 .idea
 workdir

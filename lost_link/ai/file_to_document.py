@@ -4,11 +4,19 @@ from langchain_core.document_loaders import BaseLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+from lost_link.settings import Settings
+
 
 class FileToDocumentConverter:
 
-    def __init__(self):
-        self._splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=350)
+    def __init__(self, settings: Settings):
+        overlap = settings.get(Settings.KEY_TEXT_SPLITTING_OVERLAP, 150)
+        chunk_size = 500
+
+        if overlap > chunk_size:
+            overlap = chunk_size
+
+        self._splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=overlap)
 
     @staticmethod
     def _get_loader(path: str) -> BaseLoader | None:
@@ -36,7 +44,7 @@ class FileToDocumentConverter:
 
         try:
             for page in loader.load():
-                content += page.page_content
+                content += page.page_content.lower()
                 content += "\n\n"
                 last_metadata = page.metadata
 
