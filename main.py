@@ -140,7 +140,7 @@ class LostLink:
             self._spinner.fail(str(e))
             sys.exit(1)
         except Exception:
-            self._spinner.fail("Konnte Datei nicht herunterladen")
+            self._spinner.fail("Login bei der Graph API fehlgeschlagen")
             sys.exit(1)
 
     def _update_embeddings(self):
