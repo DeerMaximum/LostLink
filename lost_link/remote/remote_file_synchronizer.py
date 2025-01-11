@@ -266,9 +266,9 @@ class SynchUtil:
                 file.write(response.content)
             return file_path
         except Exception as e:
-            print(f"Failed to download file {file_item['name']}: {e}")
             if os.path.exists(file_path):
                 os.remove(file_path)
+            raise RuntimeError(f"Failed to download file {file_item['name']} from {download_url}") from e
     
 
     @staticmethod

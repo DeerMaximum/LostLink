@@ -15,6 +15,7 @@ class GraphAPIAccess:
     @staticmethod
     def api_request(request_url: str) -> dict[str, Any]:
         response = GraphAPIAccess.raw_request(request_url)
+        response.raise_for_status()
         return response.json()
 
     @staticmethod
