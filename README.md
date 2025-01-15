@@ -1,4 +1,11 @@
-# Projektarbeit Lost-Link
+# Lost-Link
+
+![](./img/header.png)
+
+## Modelle
+
+Dieses Programm nutzt folgende LLMs:
+* [mxbai-embed-large](https://huggingface.co/ChristianAzinn/mxbai-embed-large-v1-gguf/resolve/main/mxbai-embed-large-v1.Q8_0.gguf?download=true)
 
 ## Installation
 
@@ -15,13 +22,9 @@
 
     ``pip install -r requirements.txt``
 
-4. *(Optional)* Für nicht Ollama-Modelle installiere noch LlamaCpp
+4. *(Optional)* Für LlamaCpp GPU-Unterstützung aktivieren <br>
+   Für GPU-Unterstützung folge [dieser Anleitung](https://llama-cpp-python.readthedocs.io/en/latest/). Für NVIDIA Grafikkarten kannst du CUDA nehmen, für andere Vulkan.
 
-    > Für GPU-Unterstützung folge [dieser Anleitung](https://llama-cpp-python.readthedocs.io/en/latest/). Für NVIDIA Grafikkarten kannst du CUDA nehmen, für andere Vulkan.
-    
-    > Beachte die Installation dauert sehr lange (ca. 30min)
-
-    ``pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu``
 
 ## Zu .exe konvertieren
 
